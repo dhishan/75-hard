@@ -1,0 +1,16 @@
+# ---------------------------------------------------------------------------
+# Dev workspace – terraform.tfvars
+# Copy this file to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars with real secrets.
+# ---------------------------------------------------------------------------
+
+project_id           = "YOUR_GCP_PROJECT_ID"
+region               = "us-central1"
+environment          = "dev"
+app_name             = "75-hard"
+backend_service_name = "75-hard-backend"
+frontend_bucket_name = "75-hard-frontend-dev"
+firestore_location   = "us-central1"
+google_client_id     = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com"
+frontend_domain      = "app.YOUR_DOMAIN.com"
+backend_domain       = "api.YOUR_DOMAIN.com"
