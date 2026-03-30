@@ -85,7 +85,7 @@ async def streaks(up_id: str, user=Depends(verify_token)):
     return {
         "current_streak": current_streak,
         "best_streak": best_streak,
-        "streak_history": streak_history,
+        "streak_history": streak_history + ([current_streak] if current_streak > 0 else []),
     }
 
 
