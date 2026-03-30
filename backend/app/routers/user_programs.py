@@ -1,9 +1,14 @@
 import uuid
 from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from app.auth.firebase import verify_token
 from app.db.firestore import get_db
 from app.models.user_program import UserProgram, UserProgramCreate
+
+
+class UserProgramStatusUpdate(BaseModel):
+    status: str
 
 router = APIRouter(prefix="/api/v1/user-programs", tags=["user-programs"])
 
@@ -61,7 +66,7 @@ async def get_user_program(up_id: str, user=Depends(verify_token)):
 
 
 @router.patch("/{up_id}", response_model=UserProgram)
-async def update_status(up_id: str, body: dict, user=Depends(verify_token)):
+async def update_status(up_id: str, body: UserProgramStatusUpdate, user=Depends(verify_token)):
     db = get_db()
     ref = db.collection("userPrograms").document(up_id)
     doc = ref.get()
@@ -70,8 +75,7 @@ async def update_status(up_id: str, body: dict, user=Depends(verify_token)):
     up = UserProgram(**doc.to_dict())
     if up.user_uid != user["uid"]:
         raise HTTPException(403)
-    allowed = {"status"}
-    updates = {k: v for k, v in body.items() if k in allowed}
-    updates["updated_at"] = datetime.utcnow().isoformat()
+    updates = {"status": body.status, "updated_at": datetime.utcnow().isoformat()}
     ref.update(updates)
-    return UserProgram(**{**doc.to_dict(), **updates})
+    updated_doc = ref.get()
+    return UserProgram(**updated_doc.to_dict())
