@@ -30,7 +30,6 @@ push-backend:
 	docker push $(IMAGE_REPO)/backend:latest
 
 deploy-frontend:
-	cd frontend && npm ci && npm run build
-	gsutil -m rsync -r -d frontend/dist gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "75hard-$(TF_ENV)-frontend")
-	gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "75hard-$(TF_ENV)-frontend")/assets/**"
-	gsutil setmeta -h "Cache-Control:no-cache, no-store" "gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "75hard-$(TF_ENV)-frontend")/index.html"
+	gsutil -m rsync -r -d frontend/dist gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "seventy5hard-$(TF_ENV)-frontend")
+	gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "seventy5hard-$(TF_ENV)-frontend")/assets/**"
+	gsutil setmeta -h "Cache-Control:no-cache, no-store" "gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "seventy5hard-$(TF_ENV)-frontend")/index.html"
