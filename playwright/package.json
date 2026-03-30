@@ -1,0 +1,16 @@
+{
+  "name": "75-hard-e2e",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.0",
+    "@types/node": "^25.5.0",
+    "axios": "^1.6.8",
+    "typescript": "^6.0.2"
+  }
+}

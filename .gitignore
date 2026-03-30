@@ -205,3 +205,14 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Frontend env
+frontend/.env
+frontend/.env.local
+
+# Terraform
+terraform/workspaces/**/terraform.tfvars
+!terraform/workspaces/**/terraform.tfvars.example
+terraform/main/.terraform/
+terraform/main/.terraform.lock.hcl
+terraform/main/terraform.tfstate*

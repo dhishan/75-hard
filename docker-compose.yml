@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  firebase:
+    build:
+      context: .
+      dockerfile: backend/emulator.Dockerfile
+    ports:
+      - "4000:4000"
+      - "8080:8080"
+      - "9099:9099"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  fake-gcs:
+    image: fsouza/fake-gcs-server:1.47
+    ports:
+      - "4443:4443"
+    command: ["-scheme", "http", "-port", "4443", "-backend", "memory"]
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      FIRESTORE_EMULATOR_HOST: firebase:8080
+      FIREBASE_AUTH_EMULATOR_HOST: firebase:9099
+      STORAGE_EMULATOR_HOST: fake-gcs:4443
+      GCP_PROJECT_ID: demo-75hard
+      GCS_BUCKET_EVIDENCE: demo-evidence
+      ENV: local
+    depends_on:
+      firebase:
+        condition: service_healthy
+      fake-gcs:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+    depends_on:
+      - backend
