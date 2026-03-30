@@ -53,6 +53,12 @@ variable "root_domain" {
   default     = "blueelephants.org"
 }
 
+variable "google_oauth_client_secret" {
+  description = "Google OAuth client secret for Firebase Auth Google sign-in"
+  type        = string
+  sensitive   = true
+}
+
 variable "frontend_bucket_name" {
   description = "GCS bucket name for frontend static hosting"
   type        = string

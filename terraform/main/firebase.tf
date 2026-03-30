@@ -29,3 +29,14 @@ resource "google_identity_platform_config" "auth" {
 
   depends_on = [google_firebase_project.default]
 }
+
+# Google sign-in provider
+resource "google_identity_platform_default_supported_idp_config" "google" {
+  project       = var.project_id
+  idp_id        = "google.com"
+  client_id     = "610355955735-ibuut3n4223aio27od5tpn3rl9o5knm8.apps.googleusercontent.com"
+  client_secret = var.google_oauth_client_secret
+  enabled       = true
+
+  depends_on = [google_identity_platform_config.auth]
+}
