@@ -4,7 +4,7 @@ environment          = "prod"
 backend_image        = "us-central1-docker.pkg.dev/personal-projects-473219/seventy5hard-backend/backend:latest"
 firestore_location   = "nam5"
 frontend_origin      = "https://75hard.blueelephants.org"
-frontend_bucket_name = "75hard-prod-frontend"
+frontend_bucket_name = "seventy5hard-prod-frontend"
 root_domain          = "blueelephants.org"
 cloudflare_zone_id   = "1eb0ae8907a74b14d5226384b92946b7"
 # cloudflare_api_token passed via TF_VAR_cloudflare_api_token

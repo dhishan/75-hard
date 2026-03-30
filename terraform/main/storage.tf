@@ -2,7 +2,7 @@
 
 resource "google_storage_bucket" "evidence" {
   project                     = var.project_id
-  name                        = "75hard-${var.environment}-evidence"
+  name                        = "seventy5hard-${var.environment}-evidence"
   location                    = var.region
   uniform_bucket_level_access = true
   force_destroy               = var.environment == "dev" ? true : false

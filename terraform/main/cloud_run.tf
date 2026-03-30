@@ -28,7 +28,7 @@ resource "google_cloud_run_service" "backend" {
 
         env {
           name  = "GCS_BUCKET_EVIDENCE"
-          value = "75hard-${var.environment}-evidence"
+          value = "seventy5hard-${var.environment}-evidence"
         }
 
         env {

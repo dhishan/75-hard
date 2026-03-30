@@ -13,8 +13,8 @@ locals {
     "iamcredentials.googleapis.com",
   ]
 
-  evidence_bucket_name = "75hard-${var.environment}-evidence"
-  app_name             = "75hard-${var.environment}"
+  evidence_bucket_name = "seventy5hard-${var.environment}-evidence"
+  app_name             = "seventy5hard-${var.environment}"
 }
 
 resource "google_project_service" "apis" {
