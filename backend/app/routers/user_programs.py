@@ -79,3 +79,19 @@ async def update_status(up_id: str, body: UserProgramStatusUpdate, user=Depends(
     ref.update(updates)
     updated_doc = ref.get()
     return UserProgram(**updated_doc.to_dict())
+
+
+@router.delete("/{up_id}", status_code=204)
+async def delete_user_program(up_id: str, user=Depends(verify_token)):
+    db = get_db()
+    ref = db.collection("userPrograms").document(up_id)
+    doc = ref.get()
+    if not doc.exists:
+        raise HTTPException(404)
+    if UserProgram(**doc.to_dict()).user_uid != user["uid"]:
+        raise HTTPException(403)
+    # Delete all sub-collections (dailyLogs)
+    logs = ref.collection("dailyLogs").stream()
+    for log in logs:
+        log.reference.delete()
+    ref.delete()

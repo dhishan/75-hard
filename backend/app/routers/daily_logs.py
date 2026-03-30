@@ -99,3 +99,10 @@ async def list_logs(up_id: str, user=Depends(verify_token)):
     _get_up_or_403(db, up_id, user["uid"])
     docs = db.collection("userPrograms").document(up_id).collection("dailyLogs").stream()
     return [DailyLog(**d.to_dict()) for d in docs]
+
+
+@router.delete("/{up_id}/logs/{log_date}", status_code=204)
+async def delete_log(up_id: str, log_date: date, user=Depends(verify_token)):
+    db = get_db()
+    _get_up_or_403(db, up_id, user["uid"])
+    db.collection("userPrograms").document(up_id).collection("dailyLogs").document(str(log_date)).delete()
