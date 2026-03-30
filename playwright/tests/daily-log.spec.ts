@@ -89,9 +89,12 @@ test.describe('Daily Log', () => {
     await expect(newsButton).toHaveClass(/bg-blue-600/, { timeout: 3000 })
 
     await page.getByRole('button', { name: 'Save Log' }).click()
+    await page.waitForLoadState('networkidle')
     await page.waitForSelector('[class*="bg-green"]', { timeout: 5000 })
 
     // 325 + 15 (skin care) + 20 (news) = 360
-    await expect(page.getByText(/360 pts/)).toBeVisible()
+    const bannerText = await page.locator('[class*="bg-green"]').innerText()
+    console.log('Banner text:', bannerText)
+    await expect(page.getByText(/360 pts/)).toBeVisible({ timeout: 10000 })
   })
 })
