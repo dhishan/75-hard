@@ -83,7 +83,10 @@ test.describe('Daily Log', () => {
 
     // Complete optionals: skin care + news
     await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Skin care' }).locator('input[type="checkbox"]').check()
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'News/Finance/Podcast' }).getByRole('button', { name: 'news' }).click()
+    const newsButton = page.locator('[class*="rounded-lg"]').filter({ hasText: 'News/Finance/Podcast' }).getByRole('button', { name: 'news' })
+    await newsButton.click()
+    // Wait for the button to turn blue (selected state) before saving
+    await expect(newsButton).toHaveClass(/bg-blue-600/, { timeout: 3000 })
 
     await page.getByRole('button', { name: 'Save Log' }).click()
     await page.waitForSelector('[class*="bg-green"]', { timeout: 5000 })
