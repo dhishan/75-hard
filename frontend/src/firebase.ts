@@ -1,5 +1,11 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import {
+  getAuth,
+  connectAuthEmulator,
+  signInWithEmailAndPassword,
+  browserLocalPersistence,
+  setPersistence,
+} from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? 'demo-key',
@@ -12,4 +18,14 @@ export const auth = getAuth(firebaseApp)
 
 if (import.meta.env.DEV) {
   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
+  // Use localStorage so Playwright storageState() can capture auth tokens for E2E tests
+  setPersistence(auth, browserLocalPersistence)
+  // Expose for E2E test setup
+  ;(window as unknown as Record<string, unknown>).__e2eSignIn = async (
+    email: string,
+    password: string,
+  ) => {
+    await setPersistence(auth, browserLocalPersistence)
+    await signInWithEmailAndPassword(auth, email, password)
+  }
 }

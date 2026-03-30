@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProgramStore } from '@/store/program'
+import { api } from '@/api/client'
+import type { UserProgram } from '@/types'
 import CompletionHeatmap from '@/components/charts/CompletionHeatmap'
 import StreakChart from '@/components/charts/StreakChart'
 import TaskRatesChart from '@/components/charts/TaskRatesChart'
@@ -7,7 +10,16 @@ import PointsChart from '@/components/charts/PointsChart'
 
 export default function Graphs() {
   const navigate = useNavigate()
-  const { activeRun } = useProgramStore()
+  const { activeRun, setActiveRun } = useProgramStore()
+
+  useEffect(() => {
+    if (!activeRun) {
+      api.get<UserProgram[]>('/user-programs').then((res) => {
+        const active = res.data.find((r) => r.status === 'active')
+        if (active) setActiveRun(active)
+      })
+    }
+  }, [])
 
   if (!activeRun) {
     return (

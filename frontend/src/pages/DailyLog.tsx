@@ -2,20 +2,29 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '@/api/client'
 import { useProgramStore } from '@/store/program'
-import type { TaskCompletion, TaskDefinition, DailyLog as DailyLogType } from '@/types'
+import type { TaskCompletion, TaskDefinition, DailyLog as DailyLogType, UserProgram } from '@/types'
 import TaskCard from '@/components/TaskCard'
 import EvidenceUpload from '@/components/EvidenceUpload'
 
 export default function DailyLog() {
   const { date } = useParams<{ date: string }>()
   const navigate = useNavigate()
-  const { activeRun } = useProgramStore()
+  const { activeRun, setActiveRun } = useProgramStore()
   const [completions, setCompletions] = useState<TaskCompletion[]>([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<DailyLogType | null>(null)
 
   const tasks: TaskDefinition[] =
     ((activeRun?.program_snapshot as Record<string, unknown>)?.tasks as TaskDefinition[]) ?? []
+
+  useEffect(() => {
+    if (!activeRun) {
+      api.get<UserProgram[]>('/user-programs').then((res) => {
+        const active = res.data.find((r) => r.status === 'active')
+        if (active) setActiveRun(active)
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (!activeRun || !date) return

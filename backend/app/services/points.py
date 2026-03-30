@@ -7,13 +7,18 @@ def calc_task_points(task: TaskDefinition, tc: TaskCompletion) -> TaskCompletion
     """Compute points_earned and bonus_earned for a single task completion. Returns updated tc."""
     tc = tc.model_copy()
 
-    if not tc.completed and tc.logged_value is None:
+    # Budget tasks are always evaluated (logged_value=None means 0 usage → within budget)
+    if task.type != TaskType.budget and not tc.completed and tc.logged_value is None:
         tc.points_earned = 0
         tc.bonus_earned = False
         return tc
 
     # Determine if target is met
-    if task.type == TaskType.boolean:
+    if task.type == TaskType.budget:
+        logged = tc.logged_value or 0
+        met = task.total_budget is not None and logged <= task.total_budget
+        tc.completed = met
+    elif task.type == TaskType.boolean:
         met = tc.completed
     elif task.target_value is not None:
         logged = tc.logged_value or 0

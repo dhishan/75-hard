@@ -1,6 +1,5 @@
 import { chromium, FullConfig } from '@playwright/test'
 import axios from 'axios'
-import * as fs from 'fs'
 import * as path from 'path'
 
 async function globalSetup(_config: FullConfig) {
@@ -17,45 +16,41 @@ async function globalSetup(_config: FullConfig) {
     // User may already exist from a previous run — that's OK
   }
 
-  // Sign in to get idToken
-  const signInResp = await axios.post(
-    'http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key',
-    { email, password, returnSecureToken: true },
+  // Sign in via a real browser so Firebase SDK handles storage correctly
+  const browser = await chromium.launch()
+  const context = await browser.newContext()
+  const page = await context.newPage()
+
+  await page.goto('http://localhost:5173')
+  await page.waitForLoadState('networkidle')
+
+  // Use the __e2eSignIn helper exposed by firebase.ts in dev mode
+  const error = await page.evaluate(
+    async ({ email, password }) => {
+      try {
+        const signIn = (window as unknown as Record<string, unknown>).__e2eSignIn as
+          | ((email: string, password: string) => Promise<void>)
+          | undefined
+        if (!signIn) return '__e2eSignIn not found on window'
+        await signIn(email, password)
+        return null
+      } catch (e) {
+        return String(e)
+      }
+    },
+    { email, password },
   )
-  const { idToken, localId } = signInResp.data
 
-  // Build Firebase auth state that matches what the SDK writes to localStorage
-  const authState = {
-    [`firebase:authUser:demo-key:[DEFAULT]`]: JSON.stringify({
-      uid: localId,
-      email,
-      displayName: 'E2E Test User',
-      stsTokenManager: {
-        refreshToken: 'fake-refresh-token',
-        accessToken: idToken,
-        expirationTime: Date.now() + 3600 * 1000,
-      },
-      lastLoginAt: String(Date.now()),
-      createdAt: String(Date.now()),
-    }),
-  }
+  if (error) throw new Error(`Sign-in failed: ${error}`)
 
-  // Save to storage state file
+  // Wait briefly for IndexedDB writes to complete
+  await page.waitForTimeout(1000)
+
   const storageStatePath = path.join(__dirname, 'auth-state.json')
-  fs.writeFileSync(
-    storageStatePath,
-    JSON.stringify({
-      cookies: [],
-      origins: [
-        {
-          origin: 'http://localhost:5173',
-          localStorage: Object.entries(authState).map(([name, value]) => ({ name, value })),
-        },
-      ],
-    }),
-  )
+  await context.storageState({ path: storageStatePath })
+  await browser.close()
 
-  console.log(`✓ Firebase test user created: ${email} (uid: ${localId})`)
+  console.log(`✓ Firebase test user signed in: ${email}`)
   console.log(`✓ Auth state saved to ${storageStatePath}`)
 }
 
