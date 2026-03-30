@@ -77,21 +77,12 @@ resource "google_cloud_run_service_iam_member" "backend_public" {
   member   = "allUsers"
 }
 
-# ── Cloud Run domain mapping ──────────────────────────────────────────────────
-
-resource "google_cloud_run_domain_mapping" "backend" {
-  project  = var.project_id
-  name     = "api.75hard.${var.root_domain}"
-  location = var.region
-
-  spec {
-    route_name = google_cloud_run_service.backend.name
-  }
-
-  metadata {
-    namespace = var.project_id
-  }
-
-  depends_on = [google_cloud_run_service.backend]
-}
+# NOTE: Cloud Run domain mapping for api.75hard.blueelephants.org is managed
+# out-of-band (created with personal gcloud credentials, not CI) because the
+# CI service account is not a verified domain owner in Google Search Console.
+# Create/recreate with:
+#   gcloud alpha run domain-mappings create \
+#     --domain api.75hard.blueelephants.org \
+#     --service seventy5hard-backend-prod \
+#     --region us-central1 --project personal-projects-473219
 
