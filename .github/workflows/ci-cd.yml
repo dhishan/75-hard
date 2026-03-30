@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  PROJECT_ID: 75hard-prod
+  PROJECT_ID: personal-projects-473219
   REGION: us-central1
   ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
   REPOSITORY: 75hard-backend
