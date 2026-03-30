@@ -24,6 +24,10 @@ resource "google_identity_platform_config" "auth" {
       enabled           = true
       password_required = true
     }
+
+    google {
+      enabled = true
+    }
   }
 
   depends_on = [google_firebase_project.default]
