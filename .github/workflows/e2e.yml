@@ -123,6 +123,7 @@ jobs:
           done
         env:
           VITE_API_URL: http://localhost:8000/api/v1
+          VITE_E2E: "true"
 
       - name: Run Playwright tests
         run: cd playwright && npx playwright test --reporter=list

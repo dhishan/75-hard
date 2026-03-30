@@ -16,7 +16,7 @@ const firebaseConfig = {
 export const firebaseApp = initializeApp(firebaseConfig)
 export const auth = getAuth(firebaseApp)
 
-if (import.meta.env.DEV) {
+if (import.meta.env.DEV || import.meta.env.VITE_E2E === 'true') {
   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
   // Use localStorage so Playwright storageState() can capture auth tokens for E2E tests
   setPersistence(auth, browserLocalPersistence)
