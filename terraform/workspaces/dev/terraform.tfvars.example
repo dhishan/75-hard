@@ -1,0 +1,6 @@
+project_id         = "your-dev-gcp-project-id"
+region             = "us-central1"
+environment        = "dev"
+backend_image      = "us-central1-docker.pkg.dev/your-dev-gcp-project-id/75hard-backend/backend:latest"
+firestore_location = "nam5"
+frontend_origin    = "http://localhost:5173"
