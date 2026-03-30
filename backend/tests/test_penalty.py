@@ -45,6 +45,7 @@ def test_shield_absorbs_penalty():
     assert updated.total_days_required == 75
     assert updated.shield_tokens_available == 0
     assert updated.shields_used == 1
+    assert updated.failure_count == 0  # shield absorbs — failure_count only tracks unshielded failures
 
 
 def test_no_shield_penalty_extends_program():
