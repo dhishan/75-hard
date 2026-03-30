@@ -29,7 +29,7 @@ services:
     environment:
       FIRESTORE_EMULATOR_HOST: firebase:8080
       FIREBASE_AUTH_EMULATOR_HOST: firebase:9099
-      STORAGE_EMULATOR_HOST: http://fake-gcs:4443
+      STORAGE_EMULATOR_HOST: fake-gcs:4443
       GCP_PROJECT_ID: demo-75hard
       GCS_BUCKET_EVIDENCE: demo-evidence
       ENV: local
