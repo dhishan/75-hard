@@ -17,3 +17,18 @@ output "artifact_registry_repo" {
   description = "Artifact Registry repository URL"
   value       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.backend.repository_id}"
 }
+
+output "frontend_ip" {
+  description = "Global IP address for the frontend HTTPS load balancer"
+  value       = google_compute_global_address.frontend.address
+}
+
+output "frontend_url" {
+  description = "Frontend URL"
+  value       = "https://75hard.${var.root_domain}"
+}
+
+output "backend_url_custom" {
+  description = "Backend custom domain URL"
+  value       = "https://api.75hard.${var.root_domain}"
+}

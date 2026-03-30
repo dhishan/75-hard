@@ -34,3 +34,26 @@ variable "frontend_origin" {
   description = "Frontend origin URL allowed in CORS (e.g. https://75hard.app)"
   type        = string
 }
+
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token for DNS management"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone ID for blueelephants.org"
+  type        = string
+  default     = "1eb0ae8907a74b14d5226384b92946b7"
+}
+
+variable "root_domain" {
+  description = "Root domain"
+  type        = string
+  default     = "blueelephants.org"
+}
+
+variable "frontend_bucket_name" {
+  description = "GCS bucket name for frontend static hosting"
+  type        = string
+}

@@ -69,10 +69,29 @@ resource "google_cloud_run_service" "backend" {
 
 # ── Public access ─────────────────────────────────────────────────────────────
 
+
 resource "google_cloud_run_service_iam_member" "backend_public" {
   project  = var.project_id
   location = var.region
   service  = google_cloud_run_service.backend.name
   role     = "roles/run.invoker"
   member   = "allUsers"
+}
+
+# ── Cloud Run domain mapping ──────────────────────────────────────────────────
+
+resource "google_cloud_run_domain_mapping" "backend" {
+  project  = var.project_id
+  name     = "api.75hard.${var.root_domain}"
+  location = var.region
+
+  spec {
+    route_name = google_cloud_run_service.backend.name
+  }
+
+  metadata {
+    namespace = var.project_id
+  }
+
+  depends_on = [google_cloud_run_service.backend]
 }

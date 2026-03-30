@@ -4,7 +4,7 @@ TF_ENV     ?= dev
 WORKSPACE  := terraform/workspaces/$(TF_ENV)
 REGION     ?= us-central1
 
-.PHONY: terraform-init terraform-plan terraform-apply terraform-destroy push-backend
+.PHONY: terraform-init terraform-plan terraform-apply terraform-destroy push-backend deploy-frontend
 
 terraform-init:
 	cd $(TF_DIR) && terraform init \
@@ -26,3 +26,9 @@ terraform-destroy:
 push-backend:
 	docker build -t $(shell cd $(TF_DIR) && terraform output -raw artifact_registry_repo)/backend:latest ./backend
 	docker push $(shell cd $(TF_DIR) && terraform output -raw artifact_registry_repo)/backend:latest
+
+deploy-frontend:
+	cd frontend && npm ci && npm run build
+	gsutil -m rsync -r -d frontend/dist gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "75hard-$(TF_ENV)-frontend")
+	gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "75hard-$(TF_ENV)-frontend")/assets/**"
+	gsutil setmeta -h "Cache-Control:no-cache, no-store" "gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "75hard-$(TF_ENV)-frontend")/index.html"
