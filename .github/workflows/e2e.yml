@@ -1,0 +1,138 @@
+name: E2E Tests
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [CI/CD]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  integration:
+    name: Backend Integration Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java (Firebase emulator requires JRE)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node (firebase-tools)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install firebase-tools
+        run: npm install -g firebase-tools@13
+
+      - name: Start Firebase emulator
+        run: |
+          firebase emulators:start --only auth,firestore --project demo-75hard &
+          for i in $(seq 1 20); do
+            curl -s http://localhost:4000 > /dev/null 2>&1 && echo "Emulator ready" && break
+            sleep 3
+          done
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: cd backend && pip install -r requirements.txt
+
+      - name: Run integration tests
+        run: cd backend && pytest tests/integration/ -v --tb=short
+        env:
+          FIRESTORE_EMULATOR_HOST: localhost:8080
+          FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
+          GCP_PROJECT_ID: demo-75hard
+          ENV: test
+
+  playwright:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java (Firebase emulator requires JRE)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install firebase-tools
+        run: npm install -g firebase-tools@13
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: cd backend && pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Install Playwright browsers
+        run: cd playwright && npm ci && npx playwright install --with-deps chromium
+
+      - name: Start Firebase emulator
+        run: |
+          firebase emulators:start --only auth,firestore --project demo-75hard &
+          for i in $(seq 1 20); do
+            curl -s http://localhost:4000 > /dev/null 2>&1 && echo "Emulator ready" && break
+            sleep 3
+          done
+
+      - name: Start backend
+        run: |
+          cd backend
+          uvicorn app.main:app --port 8000 &
+          for i in $(seq 1 10); do
+            curl -s http://localhost:8000 > /dev/null 2>&1 && echo "Backend ready" && break
+            sleep 3
+          done
+        env:
+          FIRESTORE_EMULATOR_HOST: localhost:8080
+          FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
+          GCP_PROJECT_ID: demo-75hard
+          ENV: local
+
+      - name: Start frontend
+        run: |
+          cd frontend
+          npm run build
+          npx vite preview --port 5173 &
+          for i in $(seq 1 10); do
+            curl -s http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            sleep 3
+          done
+        env:
+          VITE_API_URL: http://localhost:8000/api/v1
+
+      - name: Run Playwright tests
+        run: cd playwright && npx playwright test --reporter=list
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright/playwright-report/
+          retention-days: 7
