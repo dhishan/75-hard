@@ -89,6 +89,9 @@ jobs:
         with:
           terraform_version: "1.7.0"
 
+      - name: Terraform Init
+        run: make terraform-init TF_ENV=${{ env.TF_ENV }}
+
       - name: Build and push backend image
         run: make push-backend TF_ENV=${{ env.TF_ENV }}
 

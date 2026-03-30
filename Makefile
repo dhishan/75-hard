@@ -16,16 +16,18 @@ terraform-plan:
 	  -var-file=../workspaces/$(TF_ENV)/terraform.tfvars
 
 terraform-apply:
-	cd $(TF_DIR) && terraform apply \
+	cd $(TF_DIR) && terraform apply -auto-approve \
 	  -var-file=../workspaces/$(TF_ENV)/terraform.tfvars
 
 terraform-destroy:
 	cd $(TF_DIR) && terraform destroy \
 	  -var-file=../workspaces/$(TF_ENV)/terraform.tfvars
 
+IMAGE_REPO ?= us-central1-docker.pkg.dev/personal-projects-473219/75hard-backend
+
 push-backend:
-	docker build -t $(shell cd $(TF_DIR) && terraform output -raw artifact_registry_repo)/backend:latest ./backend
-	docker push $(shell cd $(TF_DIR) && terraform output -raw artifact_registry_repo)/backend:latest
+	docker build --platform linux/amd64 -t $(IMAGE_REPO)/backend:latest ./backend
+	docker push $(IMAGE_REPO)/backend:latest
 
 deploy-frontend:
 	cd frontend && npm ci && npm run build
