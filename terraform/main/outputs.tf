@@ -32,3 +32,8 @@ output "backend_url_custom" {
   description = "Backend custom domain URL"
   value       = "https://api.75hard.${var.root_domain}"
 }
+
+output "frontend_bucket_name" {
+  description = "GCS bucket name for frontend static hosting"
+  value       = google_storage_bucket.frontend.name
+}
