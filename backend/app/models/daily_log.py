@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import date, datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Evidence(BaseModel):
@@ -8,7 +8,7 @@ class Evidence(BaseModel):
     type: str  # "photo" | "note"
     url: str | None = None
     caption: str | None = None
-    created_at: datetime = datetime.utcnow()
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class TaskCompletion(BaseModel):
