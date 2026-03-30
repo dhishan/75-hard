@@ -5,6 +5,7 @@ import { auth } from '@/firebase'
 import { useAuthStore } from '@/store/auth'
 import Landing from '@/pages/Landing'
 import Dashboard from '@/pages/Dashboard'
+import Graphs from '@/pages/Graphs'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore()
@@ -29,6 +30,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/graphs" element={<PrivateRoute><Graphs /></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   )
