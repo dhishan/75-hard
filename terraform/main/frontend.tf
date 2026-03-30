@@ -52,6 +52,28 @@ resource "google_compute_url_map" "frontend" {
   project         = var.project_id
   name            = "seventy5hard-frontend-url-map-${var.environment}"
   default_service = google_compute_backend_bucket.frontend.id
+
+  host_rule {
+    hosts        = ["*"]
+    path_matcher = "spa"
+  }
+
+  path_matcher {
+    name            = "spa"
+    default_service = google_compute_backend_bucket.frontend.id
+
+    # Rewrite all non-asset paths to index.html for SPA client-side routing
+    default_route_action {
+      url_rewrite {
+        path_prefix_rewrite = "/index.html"
+      }
+    }
+
+    path_rule {
+      paths   = ["/assets/*", "/favicon.ico", "/index.html"]
+      service = google_compute_backend_bucket.frontend.id
+    }
+  }
 }
 
 resource "google_compute_managed_ssl_certificate" "frontend" {
