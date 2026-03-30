@@ -49,7 +49,7 @@ export default function TaskCard({ task, completion, onChange }: Props) {
               const v = parseFloat(e.target.value)
               const completed =
                 task.target_value != null
-                  ? v >= task.target_value * task.min_completion_pct
+                  ? v >= task.target_value * (task.min_completion_pct ?? 1)
                   : v > 0
               update({
                 logged_value: v,
