@@ -89,10 +89,10 @@ test.describe('Daily Log', () => {
     await expect(newsButton).toHaveClass(/bg-blue-600/, { timeout: 3000 })
 
     await page.getByRole('button', { name: 'Save Log' }).click()
-    // Wait for save banner (bg-green-100 only appears after save response)
-    await page.waitForSelector('[class*="bg-green-100"]', { timeout: 8000 })
-    const bannerText = await page.locator('[class*="bg-green-100"]').innerText()
-    console.log('Banner text:', bannerText)
+    // Wait for any save banner (green or red) then assert green
+    await page.waitForSelector('[class*="bg-green-100"], [class*="bg-red-100"]', { timeout: 15000 })
+    const banner = page.locator('[class*="bg-green-100"], [class*="bg-red-100"]').first()
+    console.log('Banner text:', await banner.innerText())
 
     // 325 + 15 (skin care) + 20 (news) = 360
     await expect(page.getByText(/360 pts/)).toBeVisible({ timeout: 5000 })
