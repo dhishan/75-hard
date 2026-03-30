@@ -1,6 +1,7 @@
 import os
 import pytest
 from httpx import AsyncClient, ASGITransport
+from unittest.mock import MagicMock, patch
 
 os.environ["ENV"] = "test"
 
@@ -18,3 +19,9 @@ async def client():
 @pytest.fixture
 def auth_headers():
     return {"Authorization": "Bearer test-uid-user123"}
+
+
+@pytest.fixture
+def mock_db():
+    with patch("app.db.firestore.get_db") as mock:
+        yield mock.return_value
