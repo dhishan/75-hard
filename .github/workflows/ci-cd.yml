@@ -10,7 +10,7 @@ env:
   PROJECT_ID: personal-projects-473219
   REGION: us-central1
   ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
-  REPOSITORY: 75hard-backend
+  REPOSITORY: seventy5hard-backend
   FRONTEND_BUCKET: 75hard-prod-frontend
   TF_ENV: prod
   ENVIRONMENT: prod

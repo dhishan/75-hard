@@ -2,7 +2,7 @@
 
 resource "google_cloud_run_service" "backend" {
   project  = var.project_id
-  name     = "75hard-backend-${var.environment}"
+  name     = "seventy5hard-backend-${var.environment}"
   location = var.region
 
   template {

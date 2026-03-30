@@ -30,7 +30,7 @@ resource "google_project_service" "apis" {
 resource "google_artifact_registry_repository" "backend" {
   project       = var.project_id
   location      = var.region
-  repository_id = "75hard-backend"
+  repository_id = "seventy5hard-backend"
   description   = "Docker images for 75 Hard backend"
   format        = "DOCKER"
 

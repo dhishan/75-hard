@@ -23,7 +23,7 @@ terraform-destroy:
 	cd $(TF_DIR) && terraform destroy \
 	  -var-file=../workspaces/$(TF_ENV)/terraform.tfvars
 
-IMAGE_REPO ?= us-central1-docker.pkg.dev/personal-projects-473219/75hard-backend
+IMAGE_REPO ?= us-central1-docker.pkg.dev/personal-projects-473219/seventy5hard-backend
 
 push-backend:
 	docker build --platform linux/amd64 -t $(IMAGE_REPO)/backend:latest ./backend
