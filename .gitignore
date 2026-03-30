@@ -212,6 +212,7 @@ frontend/.env.local
 
 # Terraform
 terraform/workspaces/**/terraform.tfvars
+!terraform/workspaces/prod/terraform.tfvars
 !terraform/workspaces/**/terraform.tfvars.example
 terraform/main/.terraform/
 terraform/main/.terraform.lock.hcl
