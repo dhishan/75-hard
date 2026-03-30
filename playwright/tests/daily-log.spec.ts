@@ -45,7 +45,7 @@ test.describe('Daily Log', () => {
     await studyCard.locator('input[type="number"]').fill('20')
 
     await page.getByRole('button', { name: 'Save Log' }).click()
-    await page.waitForSelector('[class*="bg-green"]', { timeout: 5000 })
+    await page.waitForSelector('[class*="bg-green-100"]', { timeout: 5000 })
 
     await expect(page.getByText(/Day complete/)).toBeVisible()
     await expect(page.getByText(/325 pts/)).toBeVisible()
@@ -63,7 +63,7 @@ test.describe('Daily Log', () => {
     await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Study session' }).locator('input[type="number"]').fill('20')
 
     await page.getByRole('button', { name: 'Save Log' }).click()
-    await page.waitForSelector('[class*="bg-red"]', { timeout: 5000 })
+    await page.waitForSelector('[class*="bg-red-100"]', { timeout: 5000 })
 
     await expect(page.getByText(/Incomplete/)).toBeVisible()
     await expect(page.getByText(/penalty day/)).toBeVisible()
@@ -89,12 +89,12 @@ test.describe('Daily Log', () => {
     await expect(newsButton).toHaveClass(/bg-blue-600/, { timeout: 3000 })
 
     await page.getByRole('button', { name: 'Save Log' }).click()
-    await page.waitForLoadState('networkidle')
-    await page.waitForSelector('[class*="bg-green"]', { timeout: 5000 })
+    // Wait for save banner (bg-green-100 only appears after save response)
+    await page.waitForSelector('[class*="bg-green-100"]', { timeout: 8000 })
+    const bannerText = await page.locator('[class*="bg-green-100"]').innerText()
+    console.log('Banner text:', bannerText)
 
     // 325 + 15 (skin care) + 20 (news) = 360
-    const bannerText = await page.locator('[class*="bg-green"]').innerText()
-    console.log('Banner text:', bannerText)
-    await expect(page.getByText(/360 pts/)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/360 pts/)).toBeVisible({ timeout: 5000 })
   })
 })
