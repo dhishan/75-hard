@@ -71,8 +71,6 @@ async def delete_evidence(up_id: str, log_date: date, evidence_id: str, user=Dep
     doc = db.collection("userPrograms").document(up_id).get()
     if not doc.exists or UserProgram(**doc.to_dict()).user_uid != user["uid"]:
         raise HTTPException(403)
-    # Evidence object path stored in log — soft delete is acceptable here
-    # Full delete would require re-fetching log and removing from task_completions
     log_ref = db.collection("userPrograms").document(up_id).collection("dailyLogs").document(str(log_date))
     log_doc = log_ref.get()
     if log_doc.exists:
