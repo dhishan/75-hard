@@ -1,10 +1,6 @@
 name: Infrastructure Deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "terraform/**"
   workflow_dispatch:
     inputs:
       environment:
@@ -45,8 +41,11 @@ jobs:
         with:
           terraform_version: "1.7.0"
 
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
       - name: Verify state bucket exists
-        run: gsutil ls gs://dhishan-terraform-assets/ > /dev/null
+        run: gsutil ls gs://75hard-prod-tfstate/ > /dev/null
 
       - name: Terraform Init
         run: make terraform-init TF_ENV=${{ env.TF_ENV }}
