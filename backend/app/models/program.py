@@ -12,12 +12,32 @@ class TaskType(str, Enum):
     budget = "budget"
 
 
+class TaskCategory(str, Enum):
+    health = "health"
+    fitness = "fitness"
+    nutrition = "nutrition"
+    mindset = "mindset"
+    personal_development = "personal_development"
+    professional_development = "professional_development"
+    finance = "finance"
+    relationships = "relationships"
+    creativity = "creativity"
+    other = "other"
+
+
+class TaskFrequency(str, Enum):
+    daily = "daily"
+    weekly = "weekly"
+    monthly = "monthly"
+    period = "period"
+
+
 class TaskDefinition(BaseModel):
     id: str = ""
     program_id: str = ""
     name: str
     description: str | None = None
-    category: str
+    category: TaskCategory
     icon: str | None = None
     order: int = 0
     type: TaskType
@@ -35,13 +55,14 @@ class TaskDefinition(BaseModel):
     evidence_required: bool = False
     evidence_types: list[str] = []
     tags: list[str] = []
+    frequency: TaskFrequency = TaskFrequency.daily
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class TaskDefinitionCreate(BaseModel):
     name: str
     description: str | None = None
-    category: str
+    category: TaskCategory
     icon: str | None = None
     order: int = 0
     type: TaskType
@@ -59,6 +80,7 @@ class TaskDefinitionCreate(BaseModel):
     evidence_required: bool = False
     evidence_types: list[str] = []
     tags: list[str] = []
+    frequency: TaskFrequency = TaskFrequency.daily
 
 
 class Program(BaseModel):
@@ -81,6 +103,7 @@ class ProgramCreate(BaseModel):
     description: str | None = None
     is_template: bool = False
     duration_days: int = 75
+    penalty_mode: str = "exponential"
     points_per_shield: int = 1500
     max_shields_per_week: int = 1
     max_shields_total: int | None = None

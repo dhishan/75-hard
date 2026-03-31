@@ -9,6 +9,7 @@ class PenaltyEvent(BaseModel):
     days_added: int
     missed_task_ids: list[str]
     shield_used: bool = False
+    reset_triggered: bool = False
 
 
 class UserProgram(BaseModel):
