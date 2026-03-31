@@ -15,6 +15,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [recentLogs, setRecentLogs] = useState<Record<string, DailyLog>>({})
   const [jumpDate, setJumpDate] = useState('')
+  const [categoryRates, setCategoryRates] = useState<Record<string, number>>({})
   const [editingStartDate, setEditingStartDate] = useState(false)
   const [startDateInput, setStartDateInput] = useState('')
   const [startDateSaving, setStartDateSaving] = useState(false)
@@ -28,6 +29,26 @@ export default function Dashboard() {
           const map: Record<string, DailyLog> = {}
           lr.data.forEach((l) => { map[l.date] = l })
           setRecentLogs(map)
+        })
+        api.get<{ task_id: string; name: string; completion_rate: number; completed: number; total: number }[]>(
+          `/user-programs/${active.id}/stats/task-rates`
+        ).then((tr) => {
+          const snapshot = active.program_snapshot as Record<string, unknown>
+          const tasks = (snapshot?.tasks ?? []) as { id: string; category: string }[]
+          const catMap: Record<string, string> = {}
+          tasks.forEach((t) => { catMap[t.id] = t.category })
+          const totals: Record<string, { completed: number; total: number }> = {}
+          tr.data.forEach(({ task_id, completed, total }) => {
+            const cat = catMap[task_id] ?? 'other'
+            if (!totals[cat]) totals[cat] = { completed: 0, total: 0 }
+            totals[cat].completed += completed
+            totals[cat].total += total
+          })
+          const rates: Record<string, number> = {}
+          Object.entries(totals).forEach(([cat, { completed, total }]) => {
+            rates[cat] = total > 0 ? Math.round((completed / total) * 100) : 0
+          })
+          setCategoryRates(rates)
         })
       }
     })
@@ -165,28 +186,31 @@ export default function Dashboard() {
           shieldsUsed={activeRun.shields_used}
         />
 
-        {/* Performance placeholder cards */}
+        {/* Category performance cards */}
         <div className="grid grid-cols-2 gap-4">
           {[
-            { icon: 'fitness_center', label: 'Fitness', pct: 95 },
-            { icon: 'restaurant', label: 'Nutrition', pct: 88 },
-            { icon: 'self_improvement', label: 'Mindset', pct: 92 },
-            { icon: 'menu_book', label: 'Development', pct: 78 },
-          ].map(({ icon, label, pct }) => (
+            { icon: 'fitness_center', label: 'Fitness', key: 'fitness' },
+            { icon: 'restaurant', label: 'Nutrition', key: 'nutrition' },
+            { icon: 'self_improvement', label: 'Mindset', key: 'mindset' },
+            { icon: 'menu_book', label: 'Development', key: 'personal_development' },
+          ].map(({ icon, label, key }) => {
+            const pct = categoryRates[key] ?? null
+            return (
             <div key={label} className="bg-white border border-[#c2c6d6] rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-[#0058be] text-lg">{icon}</span>
                 <span className="text-xs font-semibold text-[#545f73] uppercase tracking-wide">{label}</span>
               </div>
-              <p className="text-2xl font-bold text-[#171c1f]">{pct}%</p>
+              <p className="text-2xl font-bold text-[#171c1f]">{pct !== null ? `${pct}%` : '—'}</p>
               <div className="mt-2 h-1.5 rounded-full bg-[#eaeef2] overflow-hidden">
                 <div
                   className="h-full bg-[#0058be] rounded-full"
-                  style={{ width: `${pct}%` }}
+                  style={{ width: `${pct ?? 0}%` }}
                 />
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Action buttons */}
