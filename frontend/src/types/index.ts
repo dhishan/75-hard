@@ -1,11 +1,28 @@
 export type TaskType = 'boolean' | 'duration' | 'count' | 'measurement' | 'budget'
 
+export type TaskFrequency = 'daily' | 'weekly' | 'monthly' | 'period'
+
+export type TaskCategory =
+  | 'health'
+  | 'fitness'
+  | 'nutrition'
+  | 'mindset'
+  | 'personal_development'
+  | 'professional_development'
+  | 'finance'
+  | 'relationships'
+  | 'creativity'
+  | 'other'
+
+export type PenaltyMode = 'exponential' | 'reset'
+
 export interface TaskDefinition {
   id: string
   program_id: string
   name: string
   description?: string
-  category: string
+  category: TaskCategory
+  frequency: TaskFrequency
   icon?: string
   order: number
   type: TaskType
@@ -33,7 +50,7 @@ export interface Program {
   description?: string
   is_template: boolean
   duration_days: number
-  penalty_mode: string
+  penalty_mode: PenaltyMode
   points_per_shield: number
   max_shields_per_week: number
   max_shields_total?: number
@@ -51,6 +68,7 @@ export interface PenaltyEvent {
   days_added: number
   missed_task_ids: string[]
   shield_used: boolean
+  reset_triggered: boolean
 }
 
 export interface UserProgram {
