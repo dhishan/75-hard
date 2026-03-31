@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from app.auth.firebase import verify_token
 from app.db.firestore import get_db
@@ -19,6 +19,46 @@ def _get_up_or_403(db, up_id: str, user_uid: str) -> UserProgram:
     if up.user_uid != user_uid:
         raise HTTPException(403)
     return up
+
+
+def _is_task_satisfied_by_frequency(
+    db,
+    up_id: str,
+    task: TaskDefinition,
+    log_date: date,
+    current_tc_completed: bool,
+    start_date,
+) -> bool:
+    """Return True if the task's frequency requirement is satisfied for this window."""
+    if current_tc_completed:
+        return True
+
+    freq = getattr(task, 'frequency', 'daily')
+    if freq == "daily":
+        return False
+
+    if freq == "weekly":
+        week_start = log_date - timedelta(days=log_date.weekday())
+        window_start = week_start
+    elif freq == "monthly":
+        window_start = log_date.replace(day=1)
+    elif freq == "period":
+        window_start = start_date
+    else:
+        return False
+
+    logs_ref = db.collection("userPrograms").document(up_id).collection("dailyLogs")
+    docs = (
+        logs_ref
+        .where("date", ">=", str(window_start))
+        .where("date", "<", str(log_date))
+        .stream()
+    )
+    for doc in docs:
+        for tc_data in doc.to_dict().get("task_completions", []):
+            if tc_data.get("task_id") == task.id and tc_data.get("completed"):
+                return True
+    return False
 
 
 @router.get("/{up_id}/logs/{log_date}", response_model=DailyLog)
@@ -55,9 +95,16 @@ async def upsert_log(up_id: str, log_date: date, body: DailyLogUpsert, user=Depe
         total_points += tc.points_earned
         enriched.append(tc)
 
-    # Determine completeness: all required tasks met
+    # Determine completeness: all required tasks met (frequency-aware)
     required_ids = {tid for tid, t in task_map.items() if t.is_required}
-    completed_ids = {tc.task_id for tc in enriched if tc.completed}
+    tc_by_id = {tc.task_id: tc for tc in enriched}
+    completed_ids = set()
+    for tid in required_ids:
+        task = task_map[tid]
+        tc = tc_by_id.get(tid)
+        tc_completed = tc.completed if tc else False
+        if _is_task_satisfied_by_frequency(db, up_id, task, log_date, tc_completed, up.start_date):
+            completed_ids.add(tid)
     is_complete = required_ids.issubset(completed_ids)
 
     # Penalty processing
