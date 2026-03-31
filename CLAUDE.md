@@ -89,7 +89,7 @@ Backend: `:8000`, Frontend: `:5173`
 ## Playwright E2E
 
 - Build frontend with `VITE_E2E=true` to expose `window.__e2eSignIn` helper
-- Use `[class*="e6f4ef"]` / `[class*="fef2f2"]` for save banner selectors (Titanium success/error bg colors)
+- Wait for banner text directly: `await expect(page.getByText(/Day complete/)).toBeVisible()` or `getByText(/Incomplete/)` — more reliable than class selectors
 - After clicking sub-option buttons, wait for `toHaveClass(/bg-\[#0058be\]/)` before saving
 - Task boolean checkboxes are custom `<button>` elements (not `input[type="checkbox"]`); use `.locator('button').first().click()`
 - Task cards use `rounded-xl` (not `rounded-lg`); use `[class*="rounded-xl"]` for card selectors

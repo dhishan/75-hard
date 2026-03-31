@@ -53,9 +53,7 @@ test.describe('Daily Log', () => {
     await studyCard.locator('input[type="number"]').fill('20')
 
     await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
-    await page.waitForSelector('[class*="e6f4ef"], [class*="fef2f2"]', { timeout: 5000 })
-
-    await expect(page.getByText(/Day complete/)).toBeVisible()
+    await expect(page.getByText(/Day complete/)).toBeVisible({ timeout: 10000 })
     // Required tasks earn 0 points; banner shows "+0 pts"
     await expect(page.getByText(/\+0 pts/)).toBeVisible()
   })
@@ -72,9 +70,7 @@ test.describe('Daily Log', () => {
     await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Study session' }).locator('input[type="number"]').fill('20')
 
     await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
-    await page.waitForSelector('[class*="fef2f2"]', { timeout: 5000 })
-
-    await expect(page.getByText(/Incomplete/)).toBeVisible()
+    await expect(page.getByText(/Incomplete/)).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/penalty day/)).toBeVisible()
   })
 
@@ -97,9 +93,9 @@ test.describe('Daily Log', () => {
     await expect(newsButton).toHaveClass(/bg-\[#0058be\]/, { timeout: 3000 })
 
     await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
-    await page.waitForSelector('[class*="e6f4ef"], [class*="fef2f2"]', { timeout: 15000 })
+    await expect(page.getByText(/Day complete/)).toBeVisible({ timeout: 15000 })
 
     // 0 (required) + 15 (skin care) + 20 (news) = 35 pts
-    await expect(page.getByText(/35 pts/)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/35 pts/)).toBeVisible()
   })
 })
