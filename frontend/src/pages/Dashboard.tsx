@@ -1,11 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/firebase'
 import { useAuthStore } from '@/store/auth'
 import { useProgramStore } from '@/store/program'
 import { api } from '@/api/client'
-import type { UserProgram } from '@/types'
+import type { DailyLog, UserProgram } from '@/types'
 import DayCounter from '@/components/DayCounter'
 import ShieldStatus from '@/components/ShieldStatus'
 
@@ -13,11 +13,20 @@ export default function Dashboard() {
   const { user: _user } = useAuthStore()
   const { activeRun, setActiveRun } = useProgramStore()
   const navigate = useNavigate()
+  const [recentLogs, setRecentLogs] = useState<Record<string, DailyLog>>({})
+  const [jumpDate, setJumpDate] = useState('')
 
   useEffect(() => {
     api.get<UserProgram[]>('/user-programs').then((res) => {
       const active = res.data.find((r) => r.status === 'active')
-      if (active) setActiveRun(active)
+      if (active) {
+        setActiveRun(active)
+        api.get<DailyLog[]>(`/user-programs/${active.id}/logs`).then((lr) => {
+          const map: Record<string, DailyLog> = {}
+          lr.data.forEach((l) => { map[l.date] = l })
+          setRecentLogs(map)
+        })
+      }
     })
   }, [])
 
@@ -139,6 +148,71 @@ export default function Dashboard() {
             <span className="material-symbols-outlined text-lg">insights</span>
             View Insights
           </button>
+        </div>
+
+        {/* Past days strip */}
+        <div className="bg-white border border-[#c2c6d6] rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73]">Recent Days</p>
+          </div>
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+            {Array.from({ length: 14 }, (_, i) => {
+              const d = new Date()
+              d.setDate(d.getDate() - (13 - i))
+              const dateStr = d.toISOString().split('T')[0]
+              const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
+              const dayNum = d.getDate()
+              const isToday = dateStr === today
+              const log = recentLogs[dateStr]
+              const isComplete = log?.is_complete === true
+              const isLogged = !!log
+              const isFuture = dateStr > today
+
+              let bg = 'bg-[#f0f4f8] text-[#6f7a8d]'
+              if (isToday) bg = 'bg-[#0058be] text-white'
+              else if (isComplete) bg = 'bg-[#006947] text-white'
+              else if (isLogged) bg = 'bg-[#fef2f2] text-[#b91c1c] border border-[#fca5a5]'
+              else if (isFuture) bg = 'bg-[#f0f4f8] text-[#c2c6d6]'
+
+              return (
+                <button
+                  key={dateStr}
+                  onClick={() => !isFuture && navigate(`/log/${dateStr}`)}
+                  disabled={isFuture}
+                  className={`flex-shrink-0 flex flex-col items-center gap-0.5 rounded-xl px-3 py-2.5 min-w-[52px] transition-all ${bg} ${isFuture ? 'opacity-40 cursor-default' : 'hover:opacity-90 cursor-pointer'}`}
+                >
+                  <span className="text-[10px] font-medium opacity-75">{dayName}</span>
+                  <span className="text-base font-bold leading-tight">{dayNum}</span>
+                  {isLogged && (
+                    <span className="material-symbols-outlined text-[12px] mt-0.5">
+                      {isComplete ? 'check_circle' : 'cancel'}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Jump to date */}
+        <div className="bg-white border border-[#c2c6d6] rounded-xl p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73] mb-3">Log a Past Day</p>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={jumpDate}
+              max={today}
+              onChange={(e) => setJumpDate(e.target.value)}
+              className="flex-1 border border-[#c2c6d6] rounded-lg px-3 py-2 text-sm text-[#171c1f] bg-white focus:outline-none focus:border-[#0058be] focus:ring-1 focus:ring-[#0058be]"
+            />
+            <button
+              onClick={() => jumpDate && navigate(`/log/${jumpDate}`)}
+              disabled={!jumpDate}
+              className="px-4 py-2 bg-[#0058be] text-white text-sm font-medium rounded-lg disabled:opacity-40 hover:bg-[#2170e4] transition-colors"
+            >
+              Go
+            </button>
+          </div>
         </div>
       </main>
 
