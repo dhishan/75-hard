@@ -145,16 +145,21 @@ export default function DailyLog() {
         </div>
 
         {/* Day / Streak badges */}
-        {activeRun && (
-          <div className="flex gap-2 mb-5">
-            <span className="bg-[#0058be] text-white text-xs font-bold px-3 py-1.5 rounded-full tracking-wide">
-              DAY {activeRun.current_day}
-            </span>
-            <span className="bg-[#eaeef2] text-[#171c1f] text-xs font-bold px-3 py-1.5 rounded-full tracking-wide">
-              {activeRun.current_day} / {activeRun.total_days_required}
-            </span>
-          </div>
-        )}
+        {activeRun && date && (() => {
+          const startDate = new Date(activeRun.start_date as unknown as string)
+          const logDate = new Date(date)
+          const dayNum = Math.max(1, Math.round((logDate.getTime() - startDate.getTime()) / 86400000) + 1)
+          return (
+            <div className="flex gap-2 mb-5">
+              <span className="bg-[#0058be] text-white text-xs font-bold px-3 py-1.5 rounded-full tracking-wide">
+                DAY {dayNum}
+              </span>
+              <span className="bg-[#eaeef2] text-[#171c1f] text-xs font-bold px-3 py-1.5 rounded-full tracking-wide">
+                {dayNum} / {activeRun.total_days_required}
+              </span>
+            </div>
+          )
+        })()}
 
         {/* Tab navigation */}
         <div className="flex gap-1 bg-[#eaeef2] p-1 rounded-full mb-5">
