@@ -4,7 +4,7 @@ from app.models.program import TaskDefinition, TaskType
 from app.models.daily_log import TaskCompletion
 
 
-def _task(type=TaskType.boolean, target=None, cp=100, bp=50, btp=1.5, is_required=True):
+def _task(type=TaskType.boolean, target=None, cp=100, bp=50, btp=1.5, is_required=False):
     return TaskDefinition(
         id="t1", program_id="p1", name="T", category="fitness",
         type=type, target_value=target, completion_points=cp,
@@ -59,3 +59,34 @@ def test_shields_calculation():
 
 def test_shields_cannot_go_negative():
     assert calc_shields(total_points=1500, points_per_shield=1500, shields_used=5) == 0
+
+
+def test_required_task_earns_zero_points():
+    task = _task(TaskType.boolean, cp=100, bp=50, is_required=True)
+    tc = TaskCompletion(task_id="t1", completed=True)
+    result = calc_task_points(task, tc)
+    assert result.points_earned == 0
+    assert result.bonus_earned is False
+
+
+def test_optional_task_earns_points():
+    task = _task(TaskType.boolean, cp=100, bp=0, is_required=False)
+    tc = TaskCompletion(task_id="t1", completed=True)
+    result = calc_task_points(task, tc)
+    assert result.points_earned == 100
+
+
+def test_required_duration_task_earns_zero():
+    task = _task(TaskType.duration, target=20, cp=100, bp=50, is_required=True)
+    tc = TaskCompletion(task_id="t1", completed=True, logged_value=31)
+    result = calc_task_points(task, tc)
+    assert result.points_earned == 0
+    assert result.bonus_earned is False
+
+
+def test_optional_duration_task_earns_bonus():
+    task = _task(TaskType.duration, target=20, cp=100, bp=50, is_required=False)
+    tc = TaskCompletion(task_id="t1", completed=True, logged_value=31)
+    result = calc_task_points(task, tc)
+    assert result.points_earned == 150
+    assert result.bonus_earned is True

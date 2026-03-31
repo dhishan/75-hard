@@ -7,13 +7,26 @@ def calc_task_points(task: TaskDefinition, tc: TaskCompletion) -> TaskCompletion
     """Compute points_earned and bonus_earned for a single task completion. Returns updated tc."""
     tc = tc.model_copy()
 
-    # Budget tasks are always evaluated (logged_value=None means 0 usage → within budget)
+    # Required tasks never earn points — only determine completion status
+    if task.is_required:
+        tc.points_earned = 0
+        tc.bonus_earned = False
+        if task.type == TaskType.budget:
+            logged = tc.logged_value or 0
+            tc.completed = task.total_budget is not None and logged <= task.total_budget
+        elif task.type == TaskType.boolean:
+            pass  # tc.completed already set by caller
+        elif task.target_value is not None:
+            logged = tc.logged_value or 0
+            tc.completed = logged >= task.target_value * task.min_completion_pct
+        return tc
+
+    # Optional tasks: existing logic
     if task.type != TaskType.budget and not tc.completed and tc.logged_value is None:
         tc.points_earned = 0
         tc.bonus_earned = False
         return tc
 
-    # Determine if target is met
     if task.type == TaskType.budget:
         logged = tc.logged_value or 0
         met = task.total_budget is not None and logged <= task.total_budget
@@ -34,7 +47,6 @@ def calc_task_points(task: TaskDefinition, tc: TaskCompletion) -> TaskCompletion
 
     tc.points_earned = task.completion_points
 
-    # Check bonus
     if task.target_value is not None and task.bonus_points > 0:
         threshold = task.target_value * task.bonus_threshold_pct
         logged = tc.logged_value or 0
