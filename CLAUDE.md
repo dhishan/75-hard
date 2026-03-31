@@ -67,6 +67,10 @@ Providers: `google ~> 5.0`, `google-beta ~> 5.0` (required for Firebase resource
 
 **Cloud Run domain mapping** requires `tf-github` SA to be a verified owner of `blueelephants.org` — it is, verified via family-expense-tracker precedent.
 
+**SPA routing:** GCS bucket `not_found_page` does NOT apply through the CDN LB. Use a URL map path matcher with `url_rewrite { path_prefix_rewrite = "/index.html" }` for all non-asset paths.
+
+**CDN cache invalidation:** Always invalidate `/*` after frontend deploy — old responses (including 404s) are cached. The `ci-cd.yml` deploy job does this automatically via `gcloud compute url-maps invalidate-cdn-cache`.
+
 ## Local Development
 
 ```bash
