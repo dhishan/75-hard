@@ -6,7 +6,10 @@ app = FastAPI(title="75 Hard API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://75hard.blueelephants.org",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
