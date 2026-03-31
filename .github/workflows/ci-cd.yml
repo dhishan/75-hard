@@ -121,3 +121,11 @@ jobs:
 
       - name: Deploy frontend to GCS
         run: make deploy-frontend TF_ENV=${{ env.TF_ENV }}
+
+      - name: Invalidate CDN cache
+        run: |
+          gcloud compute url-maps invalidate-cdn-cache \
+            seventy5hard-frontend-url-map-${{ env.TF_ENV }} \
+            --path "/*" \
+            --project ${{ env.PROJECT_ID }} \
+            --async
