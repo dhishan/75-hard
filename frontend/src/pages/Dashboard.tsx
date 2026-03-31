@@ -146,15 +146,16 @@ export default function Dashboard() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e4e9ed]">
         <div className="max-w-2xl mx-auto flex items-center justify-around h-14">
           {[
-            { icon: 'home', label: 'Home', active: true },
-            { icon: 'task_alt', label: 'Tasks', active: false },
-            { icon: 'insights', label: 'Insights', active: false },
-            { icon: 'person', label: 'Profile', active: false },
-          ].map(({ icon, label, active }) => (
+            { icon: 'home', label: 'Home', active: true, onClick: () => {} },
+            { icon: 'task_alt', label: 'Tasks', active: false, onClick: () => navigate(`/log/${today}`) },
+            { icon: 'insights', label: 'Insights', active: false, onClick: () => navigate('/graphs') },
+            { icon: 'person', label: 'Profile', active: false, onClick: () => signOut(auth) },
+          ].map(({ icon, label, active, onClick }) => (
             <button
               key={label}
+              onClick={onClick}
               className={`flex flex-col items-center gap-0.5 text-xs font-medium transition-colors ${
-                active ? 'text-[#0058be]' : 'text-[#6f7a8d]'
+                active ? 'text-[#0058be]' : 'text-[#6f7a8d] hover:text-[#0058be]'
               }`}
             >
               <span className="material-symbols-outlined text-xl">{icon}</span>
