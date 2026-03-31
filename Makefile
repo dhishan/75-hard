@@ -29,6 +29,10 @@ push-backend:
 	docker build --platform linux/amd64 -t $(IMAGE_REPO)/backend:latest ./backend
 	docker push $(IMAGE_REPO)/backend:latest
 
+local-reset:
+	docker compose down -v
+	docker volume rm 75-hard_emulator-data 2>/dev/null || true
+
 deploy-frontend:
 	gsutil -m rsync -r -d frontend/dist gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "seventy5hard-$(TF_ENV)-frontend")
 	gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://$(shell cd $(TF_DIR) && terraform output -raw frontend_bucket_name 2>/dev/null || echo "seventy5hard-$(TF_ENV)-frontend")/assets/**"
