@@ -145,46 +145,56 @@ export default function Programs() {
                 </div>
 
                 {(task.type === 'duration' || task.type === 'measurement') && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <label className="text-xs text-gray-500">Target:</label>
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs text-gray-500">Target</label>
+                      <span className="text-xs font-medium text-gray-700">{task.target_value} {task.unit}</span>
+                    </div>
                     <input
-                      type="number"
-                      value={task.target_value ?? ''}
+                      type="range"
+                      min={task.type === 'duration' ? 5 : 0.5}
+                      max={task.type === 'duration' ? 120 : 10}
+                      step={task.type === 'duration' ? 5 : 0.5}
+                      value={task.target_value ?? 0}
                       onChange={(e) => updateTask(i, 'target_value', Number(e.target.value))}
-                      className="border rounded px-2 py-1 w-20 text-sm"
-                    />
-                    <input
-                      type="text"
-                      value={task.unit ?? ''}
-                      onChange={(e) => updateTask(i, 'unit', e.target.value)}
-                      className="border rounded px-2 py-1 w-16 text-sm text-gray-600"
-                      placeholder="unit"
+                      className="w-full accent-blue-600"
                     />
                   </div>
                 )}
 
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="flex items-center gap-1">
-                    <label className="text-xs text-gray-500">Points:</label>
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs text-gray-500">Points</label>
+                    <span className="text-xs font-medium text-gray-700">{task.completion_points} pts</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={5}
+                    max={200}
+                    step={5}
+                    value={task.completion_points}
+                    onChange={(e) => updateTask(i, 'completion_points', Number(e.target.value))}
+                    className="w-full accent-blue-600"
+                  />
+                </div>
+
+                {task.bonus_points > 0 && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs text-gray-500">Bonus points</label>
+                      <span className="text-xs font-medium text-gray-700">{task.bonus_points} pts</span>
+                    </div>
                     <input
-                      type="number"
-                      value={task.completion_points}
-                      onChange={(e) => updateTask(i, 'completion_points', Number(e.target.value))}
-                      className="border rounded px-2 py-1 w-16 text-sm"
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={task.bonus_points}
+                      onChange={(e) => updateTask(i, 'bonus_points', Number(e.target.value))}
+                      className="w-full accent-blue-600"
                     />
                   </div>
-                  {task.bonus_points > 0 && (
-                    <div className="flex items-center gap-1">
-                      <label className="text-xs text-gray-500">Bonus:</label>
-                      <input
-                        type="number"
-                        value={task.bonus_points}
-                        onChange={(e) => updateTask(i, 'bonus_points', Number(e.target.value))}
-                        className="border rounded px-2 py-1 w-16 text-sm"
-                      />
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             ))}
           </div>

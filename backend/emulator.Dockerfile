@@ -5,4 +5,4 @@ WORKDIR /firebase
 COPY firebase.json .
 COPY .firebaserc .
 EXPOSE 4000 8080 9099
-CMD ["firebase", "emulators:start", "--only", "auth,firestore", "--project", "demo-75hard"]
+CMD ["firebase", "emulators:start", "--only", "auth,firestore", "--project", "demo-75hard", "--import=/firebase/emulator-data", "--export-on-exit=/firebase/emulator-data"]

@@ -9,6 +9,8 @@ services:
       - "4000:4000"
       - "8080:8080"
       - "9099:9099"
+    volumes:
+      - emulator-data:/firebase/emulator-data
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000"]
       interval: 5s
@@ -51,3 +53,6 @@ services:
       - ./frontend/src:/app/src
     depends_on:
       - backend
+
+volumes:
+  emulator-data:
