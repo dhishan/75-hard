@@ -25,6 +25,7 @@ export default function DailyLog() {
   const [completions, setCompletions] = useState<TaskCompletion[]>([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<DailyLogType | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('all')
 
   const tasks: TaskDefinition[] =
@@ -64,12 +65,18 @@ export default function DailyLog() {
   const handleSave = async () => {
     if (!activeRun || !date) return
     setSaving(true)
-    const { data } = await api.put<DailyLogType>(
-      `/user-programs/${activeRun.id}/logs/${date}`,
-      { task_completions: completions }
-    )
-    setSaved(data)
-    setSaving(false)
+    setSaveError(null)
+    try {
+      const { data } = await api.put<DailyLogType>(
+        `/user-programs/${activeRun.id}/logs/${date}`,
+        { task_completions: completions }
+      )
+      setSaved(data)
+    } catch {
+      setSaveError('Save failed — please try again')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const updateCompletion = (index: number, updated: TaskCompletion) => {
@@ -97,6 +104,12 @@ export default function DailyLog() {
   return (
     <div className="min-h-screen bg-[#f6fafe]">
       {/* Save banner */}
+      {saveError && (
+        <div className="px-4 py-3 text-sm font-medium flex items-center gap-2 bg-[#fef2f2] text-[#b91c1c]">
+          <span className="material-symbols-outlined text-base">error</span>
+          {saveError}
+        </div>
+      )}
       {saved && (
         <div
           className={`px-4 py-3 text-sm font-medium flex items-center gap-2 ${

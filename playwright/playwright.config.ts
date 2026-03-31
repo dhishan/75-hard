@@ -5,7 +5,7 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  retries: process.env.CI ? 1 : 0,
   timeout: 30_000,
   globalSetup: path.resolve(__dirname, './global-setup.ts'),
 

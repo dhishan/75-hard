@@ -52,7 +52,10 @@ test.describe('Daily Log', () => {
     const studyCard = page.locator('[class*="rounded-xl"]').filter({ hasText: 'Study session' })
     await studyCard.locator('input[type="number"]').fill('20')
 
-    await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/logs/') && r.request().method() === 'PUT'),
+      page.getByRole('button', { name: 'SAVE DAILY LOG' }).click(),
+    ])
     await expect(page.getByText(/Day complete/)).toBeVisible({ timeout: 10000 })
     // Required tasks earn 0 points; banner shows "+0 pts"
     await expect(page.getByText(/\+0 pts/)).toBeVisible()
@@ -69,7 +72,10 @@ test.describe('Daily Log', () => {
     await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Water' }).locator('input[type="number"]').fill('3')
     await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Study session' }).locator('input[type="number"]').fill('20')
 
-    await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/logs/') && r.request().method() === 'PUT'),
+      page.getByRole('button', { name: 'SAVE DAILY LOG' }).click(),
+    ])
     await expect(page.getByText(/Incomplete/)).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/penalty day/)).toBeVisible()
   })
@@ -92,8 +98,11 @@ test.describe('Daily Log', () => {
     await newsButton.click()
     await expect(newsButton).toHaveClass(/bg-\[#0058be\]/, { timeout: 3000 })
 
-    await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
-    await expect(page.getByText(/Day complete/)).toBeVisible({ timeout: 15000 })
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/logs/') && r.request().method() === 'PUT'),
+      page.getByRole('button', { name: 'SAVE DAILY LOG' }).click(),
+    ])
+    await expect(page.getByText(/Day complete/)).toBeVisible({ timeout: 10000 })
 
     // 0 (required) + 15 (skin care) + 20 (news) = 35 pts
     await expect(page.getByText(/35 pts/)).toBeVisible()
