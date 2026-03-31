@@ -42,6 +42,7 @@ class TaskDefinition(BaseModel):
     order: int = 0
     type: TaskType
     target_value: float | None = None
+    target_direction: str = "min"  # "min" = at least N, "max" = at most N
     unit: str | None = None
     min_completion_pct: float = 1.0
     total_budget: int | None = None
@@ -67,6 +68,7 @@ class TaskDefinitionCreate(BaseModel):
     order: int = 0
     type: TaskType
     target_value: float | None = None
+    target_direction: str = "min"  # "min" = at least N, "max" = at most N
     unit: str | None = None
     min_completion_pct: float = 1.0
     total_budget: int | None = None

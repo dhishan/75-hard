@@ -18,7 +18,10 @@ def calc_task_points(task: TaskDefinition, tc: TaskCompletion) -> TaskCompletion
             pass  # tc.completed already set by caller
         elif task.target_value is not None:
             logged = tc.logged_value or 0
-            tc.completed = logged >= task.target_value * task.min_completion_pct
+            if getattr(task, 'target_direction', 'min') == 'max':
+                tc.completed = logged <= task.target_value
+            else:
+                tc.completed = logged >= task.target_value * task.min_completion_pct
         return tc
 
     # Optional tasks: existing logic
@@ -35,7 +38,10 @@ def calc_task_points(task: TaskDefinition, tc: TaskCompletion) -> TaskCompletion
         met = tc.completed
     elif task.target_value is not None:
         logged = tc.logged_value or 0
-        met = logged >= task.target_value * task.min_completion_pct
+        if getattr(task, 'target_direction', 'min') == 'max':
+            met = logged <= task.target_value
+        else:
+            met = logged >= task.target_value * task.min_completion_pct
         tc.completed = met
     else:
         met = tc.completed

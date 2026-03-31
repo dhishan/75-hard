@@ -27,6 +27,7 @@ export interface TaskDefinition {
   order: number
   type: TaskType
   target_value?: number
+  target_direction: 'min' | 'max'
   unit?: string
   min_completion_pct: number
   total_budget?: number

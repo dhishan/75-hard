@@ -23,18 +23,24 @@ export default function Dashboard() {
 
   if (!activeRun) {
     return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-        <p className="text-gray-500">
-          No active program.{' '}
-          <Link to="/programs" className="underline">
-            Start one
-          </Link>
-          .
-        </p>
-        <button onClick={() => signOut(auth)} className="mt-4 text-sm underline block">
-          Sign out
-        </button>
+      <div className="min-h-screen bg-[#f6fafe] flex items-center justify-center">
+        <div className="bg-white border border-[#c2c6d6] rounded-xl p-10 max-w-sm w-full mx-4 text-center shadow-sm">
+          <span className="material-symbols-outlined text-[#0058be] text-5xl mb-4 block">flag</span>
+          <h2 className="text-xl font-bold text-[#171c1f] mb-2">No Active Program</h2>
+          <p className="text-[#545f73] text-sm mb-6">
+            You haven't started a challenge yet.{' '}
+            <Link to="/programs" className="text-[#0058be] hover:underline font-medium">
+              Start one
+            </Link>{' '}
+            to begin tracking.
+          </p>
+          <button
+            onClick={() => signOut(auth)}
+            className="text-sm text-[#6f7a8d] hover:text-[#171c1f] transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     )
   }
@@ -43,48 +49,123 @@ export default function Dashboard() {
   const programName = (snapshot?.name as string) ?? 'My Challenge'
   const pointsPerShield = (snapshot?.points_per_shield as number) ?? 1500
   const today = new Date().toISOString().split('T')[0]
+  const completionPct = Math.round((activeRun.current_day / activeRun.total_days_required) * 100)
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{programName}</h1>
-        <div className="flex gap-3">
-          <button onClick={() => navigate('/graphs')} className="text-sm underline">
-            Graphs
-          </button>
-          <button onClick={() => signOut(auth)} className="text-sm underline">
-            Sign out
-          </button>
+    <div className="min-h-screen bg-[#f6fafe]">
+      {/* Top bar */}
+      <header className="bg-white border-b border-[#e4e9ed] sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+          <h1 className="font-bold text-[#171c1f] truncate max-w-[180px]">{programName}</h1>
+          <div className="flex items-center gap-4 text-sm">
+            <button
+              onClick={() => navigate('/graphs')}
+              className="text-[#0058be] hover:underline font-medium flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-base">bar_chart</span>
+              Graphs
+            </button>
+            <button
+              onClick={() => signOut(auth)}
+              className="text-[#545f73] hover:text-[#171c1f] transition-colors flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-base">logout</span>
+              Sign out
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <DayCounter
-          currentDay={activeRun.current_day}
-          totalDaysRequired={activeRun.total_days_required}
-        />
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+        {/* Stats row */}
+        <div className="grid grid-cols-2 gap-4">
+          <DayCounter
+            currentDay={activeRun.current_day}
+            totalDaysRequired={activeRun.total_days_required}
+          />
+          {/* Completion rate card */}
+          <div className="bg-white border border-[#c2c6d6] rounded-xl p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73] mb-2">Completion</p>
+            <p className="text-4xl font-bold text-[#171c1f] leading-none">{completionPct}%</p>
+            <p className="text-xs text-[#6f7a8d] mt-1.5">Overall rate</p>
+          </div>
+        </div>
+
+        {/* Shields */}
         <ShieldStatus
           tokensAvailable={activeRun.shield_tokens_available}
           totalPointsEarned={activeRun.total_points_earned}
           pointsPerShield={pointsPerShield}
           shieldsUsed={activeRun.shields_used}
         />
-      </div>
 
-      <div className="flex gap-3">
-        <button
-          onClick={() => navigate(`/log/${today}`)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-        >
-          Log Today
-        </button>
-        <button
-          onClick={() => navigate('/graphs')}
-          className="px-4 py-2 border rounded-lg"
-        >
-          Graphs
-        </button>
-      </div>
+        {/* Performance placeholder cards */}
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { icon: 'fitness_center', label: 'Fitness', pct: 95 },
+            { icon: 'restaurant', label: 'Nutrition', pct: 88 },
+            { icon: 'self_improvement', label: 'Mindset', pct: 92 },
+            { icon: 'menu_book', label: 'Development', pct: 78 },
+          ].map(({ icon, label, pct }) => (
+            <div key={label} className="bg-white border border-[#c2c6d6] rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-[#0058be] text-lg">{icon}</span>
+                <span className="text-xs font-semibold text-[#545f73] uppercase tracking-wide">{label}</span>
+              </div>
+              <p className="text-2xl font-bold text-[#171c1f]">{pct}%</p>
+              <div className="mt-2 h-1.5 rounded-full bg-[#eaeef2] overflow-hidden">
+                <div
+                  className="h-full bg-[#0058be] rounded-full"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3 pt-1">
+          <button
+            onClick={() => navigate(`/log/${today}`)}
+            className="flex-1 py-3 bg-[#0058be] hover:bg-[#2170e4] text-white font-semibold rounded-full transition-colors shadow-sm shadow-blue-100 flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-lg">edit_note</span>
+            Log Today
+          </button>
+          <button
+            onClick={() => navigate('/graphs')}
+            className="flex-1 py-3 border-2 border-[#0058be] text-[#0058be] font-semibold rounded-full hover:bg-[#f0f4f8] transition-colors flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-lg">insights</span>
+            View Insights
+          </button>
+        </div>
+      </main>
+
+      {/* Bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e4e9ed]">
+        <div className="max-w-2xl mx-auto flex items-center justify-around h-14">
+          {[
+            { icon: 'home', label: 'Home', active: true },
+            { icon: 'task_alt', label: 'Tasks', active: false },
+            { icon: 'insights', label: 'Insights', active: false },
+            { icon: 'person', label: 'Profile', active: false },
+          ].map(({ icon, label, active }) => (
+            <button
+              key={label}
+              className={`flex flex-col items-center gap-0.5 text-xs font-medium transition-colors ${
+                active ? 'text-[#0058be]' : 'text-[#6f7a8d]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-xl">{icon}</span>
+              {label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Spacer for bottom nav */}
+      <div className="h-14" />
     </div>
   )
 }

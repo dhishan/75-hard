@@ -14,19 +14,23 @@ export default function ShieldStatus({
   const nextThreshold =
     (Math.floor(totalPointsEarned / pointsPerShield) + 1) * pointsPerShield
   const progress =
-    ((totalPointsEarned % pointsPerShield) / pointsPerShield) * 100
+    Math.min(((totalPointsEarned % pointsPerShield) / pointsPerShield) * 100, 100)
+
   return (
-    <div className="rounded-lg border p-4">
-      <p className="text-sm text-gray-500">Shields</p>
-      <p className="text-3xl font-bold mt-1">🛡 {tokensAvailable} available</p>
-      <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+    <div className="bg-white border border-[#c2c6d6] rounded-xl p-5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73] mb-2">Shields</p>
+      <p className="text-4xl font-bold text-[#171c1f] leading-none">
+        🛡 {tokensAvailable}
+        <span className="text-xl font-normal text-[#545f73] ml-1">available</span>
+      </p>
+      <div className="mt-4 h-2 rounded-full bg-[#eaeef2] overflow-hidden">
         <div
-          className="h-full bg-yellow-400 transition-all"
+          className="h-full bg-[#facc15] rounded-full transition-all"
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="text-xs text-gray-400 mt-1">
-        {totalPointsEarned} / {nextThreshold} pts to next shield
+      <p className="text-xs text-[#6f7a8d] mt-1.5">
+        {totalPointsEarned.toLocaleString()} / {nextThreshold.toLocaleString()} pts to next shield
       </p>
     </div>
   )

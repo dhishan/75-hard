@@ -4,20 +4,21 @@ interface Props {
 }
 
 export default function DayCounter({ currentDay, totalDaysRequired }: Props) {
-  const pct = Math.round((currentDay / totalDaysRequired) * 100)
+  const pct = Math.min(Math.round((currentDay / totalDaysRequired) * 100), 100)
   return (
-    <div className="rounded-lg border p-4">
-      <p className="text-sm text-gray-500">Progress</p>
-      <p className="text-3xl font-bold mt-1">
-        Day {currentDay}{' '}
-        <span className="text-gray-400 text-xl">/ {totalDaysRequired}</span>
+    <div className="bg-white border border-[#c2c6d6] rounded-xl p-5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73] mb-2">Progress</p>
+      <p className="text-4xl font-bold text-[#171c1f] leading-none">
+        Day {currentDay}
+        <span className="text-xl font-normal text-[#545f73] ml-1">/ {totalDaysRequired}</span>
       </p>
-      <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="mt-4 h-2 rounded-full bg-[#eaeef2] overflow-hidden">
         <div
-          className="h-full bg-blue-600 transition-all"
+          className="h-full bg-[#0058be] rounded-full transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
+      <p className="text-xs text-[#6f7a8d] mt-1.5">{pct}% complete</p>
     </div>
   )
 }
