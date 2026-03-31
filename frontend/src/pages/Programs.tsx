@@ -53,30 +53,56 @@ const CATEGORY_COLORS: Record<string, string> = {
   other: 'bg-gray-100 text-gray-600',
 }
 
+const DRAFT_KEY = '75hard_program_draft'
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function saveDraft(draft: object) {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY)
+}
+
 export default function Programs() {
   const navigate = useNavigate()
   const [programs, setPrograms] = useState<Program[]>([])
   const [activeRunProgramIds, setActiveRunProgramIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState<string | null>(null)
-  const [showForm, setShowForm] = useState(false)
-  const [step, setStep] = useState(1)
+
+  const saved = loadDraft()
+  const [showForm, setShowForm] = useState(saved?.showForm ?? false)
+  const [step, setStep] = useState(saved?.step ?? 1)
 
   // Step 1
-  const [name, setName] = useState('My Program')
-  const [durationDays, setDurationDays] = useState(75)
+  const [name, setName] = useState(saved?.name ?? 'My Program')
+  const [durationDays, setDurationDays] = useState(saved?.durationDays ?? 75)
 
   // Step 2
-  const [tasks, setTasks] = useState<TaskDraft[]>([])
+  const [tasks, setTasks] = useState<TaskDraft[]>(saved?.tasks ?? [])
   const [addingTask, setAddingTask] = useState(false)
   const [taskDraft, setTaskDraft] = useState<TaskDraft>(BLANK_TASK)
 
   // Step 3
-  const [penaltyMode, setPenaltyMode] = useState<PenaltyMode>('exponential')
-  const [pointsPerShield, setPointsPerShield] = useState(1500)
-  const [maxShieldsPerWeek, setMaxShieldsPerWeek] = useState(1)
+  const [penaltyMode, setPenaltyMode] = useState<PenaltyMode>(saved?.penaltyMode ?? 'exponential')
+  const [pointsPerShield, setPointsPerShield] = useState(saved?.pointsPerShield ?? 1500)
+  const [maxShieldsPerWeek, setMaxShieldsPerWeek] = useState(saved?.maxShieldsPerWeek ?? 1)
 
   const [creating, setCreating] = useState(false)
+
+  // Persist wizard state to localStorage whenever it changes
+  useEffect(() => {
+    if (showForm) {
+      saveDraft({ showForm, step, name, durationDays, tasks, penaltyMode, pointsPerShield, maxShieldsPerWeek })
+    }
+  }, [showForm, step, name, durationDays, tasks, penaltyMode, pointsPerShield, maxShieldsPerWeek])
 
   useEffect(() => { loadData() }, [])
 
@@ -146,6 +172,7 @@ export default function Programs() {
           sub_options: [],
         })
       }
+      clearDraft()
       setShowForm(false)
       setStep(1)
       setTasks([])
@@ -248,7 +275,7 @@ export default function Programs() {
                 </div>
                 <div className="flex gap-3 justify-end">
                   <button
-                    onClick={() => setShowForm(false)}
+                    onClick={() => { clearDraft(); setShowForm(false); setStep(1); setTasks([]); setName('My Program'); setDurationDays(75); setPenaltyMode('exponential'); setPointsPerShield(1500); setMaxShieldsPerWeek(1) }}
                     className="border border-[#0058be] text-[#0058be] rounded-full px-6 py-2.5 font-medium hover:bg-[#f0f4f8] text-sm transition-colors"
                   >
                     Cancel
