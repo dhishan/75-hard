@@ -1,9 +1,9 @@
 """
 Scenarios:
-  1. 5 perfect required-only days (325*5=1625 pts) → shield_tokens_available=1
+  1. 5 perfect days with all optionals (45*5=225 pts, threshold=200) → shield_tokens_available=1
   2. 6th day failure with shield available → shield absorbed, days unchanged
   3. After shield use: shield_tokens_available=0, shields_used=1, failure_count unchanged
-  4. Without enough points, no shield is earned
+  4. Without enough points (4 days × 45 = 180 < 200), no shield earned
 """
 import pytest
 from datetime import date
@@ -11,7 +11,12 @@ from tests.integration.conftest import create_sample_program, start_run, make_co
 
 pytestmark = pytest.mark.asyncio
 
-PERFECT_COMPLETIONS = None  # will be set per test via fixture
+
+ALL_OPTIONAL_OVERRIDES = {
+    "Weight":               {"completed": True, "logged_value": 75.0, "logged_unit": "kg"},
+    "News/Finance/Podcast": {"completed": True, "selected_option": "news"},
+    "Skin care":            {"completed": True},
+}
 
 
 @pytest.fixture
@@ -24,11 +29,11 @@ async def program_and_run(client, auth_headers, created_program_ids, created_up_
 
 
 async def _log_perfect_days(client, auth_headers, up_id: str, tasks: list, dates: list[str]):
-    """Log multiple perfect required-only days."""
+    """Log multiple perfect days with all tasks (required + optionals) to accumulate points."""
     for d in dates:
         resp = await client.put(
             f"/api/v1/user-programs/{up_id}/logs/{d}",
-            json={"task_completions": make_completions(tasks)},
+            json={"task_completions": make_completions(tasks, overrides=ALL_OPTIONAL_OVERRIDES)},
             headers=auth_headers,
         )
         assert resp.status_code == 200
@@ -36,7 +41,7 @@ async def _log_perfect_days(client, auth_headers, up_id: str, tasks: list, dates
 
 
 async def test_earn_shield_after_5_perfect_days(program_and_run, client, auth_headers):
-    """5 perfect required-only days = 1625 pts → 1 shield token earned."""
+    """5 perfect days with all optionals = 225 pts (45*5) → 1 shield token (floor(225/200)=1)."""
     _prog, tasks, run = program_and_run
 
     await _log_perfect_days(client, auth_headers, run["id"], tasks, [
@@ -44,8 +49,8 @@ async def test_earn_shield_after_5_perfect_days(program_and_run, client, auth_he
     ])
 
     up = (await client.get(f"/api/v1/user-programs/{run['id']}", headers=auth_headers)).json()
-    assert up["total_points_earned"] == 1625  # 325 * 5
-    assert up["shield_tokens_available"] == 1  # floor(1625/1500) - 0 used = 1
+    assert up["total_points_earned"] == 225  # 45 * 5
+    assert up["shield_tokens_available"] == 1  # floor(225/200) = 1
 
 
 async def test_shield_absorbs_penalty(program_and_run, client, auth_headers):
@@ -77,7 +82,7 @@ async def test_shield_absorbs_penalty(program_and_run, client, auth_headers):
 
 
 async def test_no_shield_when_points_below_threshold(program_and_run, client, auth_headers):
-    """Only 4 days logged (1300 pts) → no shield yet (need 1500)."""
+    """Only 4 days logged (180 pts) → no shield yet (need 200)."""
     _prog, tasks, run = program_and_run
 
     await _log_perfect_days(client, auth_headers, run["id"], tasks, [
@@ -85,8 +90,8 @@ async def test_no_shield_when_points_below_threshold(program_and_run, client, au
     ])
 
     up = (await client.get(f"/api/v1/user-programs/{run['id']}", headers=auth_headers)).json()
-    assert up["total_points_earned"] == 1300  # 325 * 4
-    assert up["shield_tokens_available"] == 0  # 1300 < 1500
+    assert up["total_points_earned"] == 180  # 45 * 4
+    assert up["shield_tokens_available"] == 0  # 180 < 200
 
 
 async def test_second_failure_after_shield_used_adds_penalty(program_and_run, client, auth_headers):

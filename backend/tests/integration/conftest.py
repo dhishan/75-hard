@@ -164,7 +164,7 @@ async def create_sample_program(client, auth_headers) -> dict:
         json={
             "name": "Sample 75 Hard",
             "duration_days": 75,
-            "points_per_shield": 1500,
+            "points_per_shield": 200,
             "max_shields_per_week": 1,
         },
         headers=auth_headers,

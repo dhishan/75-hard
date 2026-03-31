@@ -1,8 +1,8 @@
 """
 Scenarios:
-  1. Required-only perfect day → 325 pts, no penalty
-  2. All tasks (required + optionals) → 370 pts
-  3. Bonus workout day (31min > 30min threshold) → 375 pts
+  1. Required-only perfect day → 0 pts (required tasks never earn points), no penalty
+  2. All tasks (required + optionals) → 45 pts (10+20+15 from optional tasks)
+  3. Workout logged at 31min — required task, still earns 0 pts; day is complete
 """
 import pytest
 from datetime import date
@@ -21,7 +21,7 @@ async def program_and_run(client, auth_headers, created_program_ids, created_up_
 
 
 async def test_complete_required_only(program_and_run, client, auth_headers):
-    """All required tasks complete, optionals skipped → 325 pts, no penalty."""
+    """All required tasks complete, optionals skipped → 0 pts (required tasks don't earn points), no penalty."""
     _prog, tasks, run = program_and_run
     completions = make_completions(tasks)  # default: required tasks done, optionals not
 
@@ -35,11 +35,11 @@ async def test_complete_required_only(program_and_run, client, auth_headers):
 
     assert log["is_complete"] is True
     assert log["penalty_applied"] == 0
-    assert log["summary_points"] == 325  # 100+100+50+75+0
+    assert log["summary_points"] == 0  # required tasks earn 0 points
 
 
 async def test_complete_with_all_optionals(program_and_run, client, auth_headers):
-    """All 8 tasks complete → 370 pts (325 required + 10+20+15 optional)."""
+    """All 8 tasks complete → 45 pts (0 required + 10+20+15 optional)."""
     _prog, tasks, run = program_and_run
     completions = make_completions(tasks, overrides={
         "Weight":               {"completed": True, "logged_value": 75.0, "logged_unit": "kg"},
@@ -57,11 +57,11 @@ async def test_complete_with_all_optionals(program_and_run, client, auth_headers
 
     assert log["is_complete"] is True
     assert log["penalty_applied"] == 0
-    assert log["summary_points"] == 370  # 325 + 10 + 20 + 15
+    assert log["summary_points"] == 45  # 0 required + 10+20+15 optional
 
 
-async def test_bonus_workout(program_and_run, client, auth_headers):
-    """Workout logged at 31min (>=30min = 150% threshold) earns +50 bonus → 375 pts total."""
+async def test_workout_required_no_points(program_and_run, client, auth_headers):
+    """Workout at 31min (above threshold) — required task earns 0 pts even with bonus config."""
     _prog, tasks, run = program_and_run
     completions = make_completions(tasks, overrides={
         "Workout": {"completed": True, "logged_value": 31, "logged_unit": "min"},
@@ -76,12 +76,11 @@ async def test_bonus_workout(program_and_run, client, auth_headers):
     log = resp.json()
 
     assert log["is_complete"] is True
-    assert log["summary_points"] == 375  # 150(workout with bonus)+100(sugar)+50(water)+75(study)
+    assert log["summary_points"] == 0  # required task — no points regardless of value
 
-    # Verify workout task_completion has bonus_earned=True
-    workout_tc = next(tc for tc in log["task_completions"] if tc["points_earned"] == 150)
-    assert workout_tc["bonus_earned"] is True
-    assert workout_tc["points_earned"] == 150
+    # All task completions earn 0 pts (all required)
+    assert all(tc["points_earned"] == 0 for tc in log["task_completions"])
+    assert all(tc["bonus_earned"] is False for tc in log["task_completions"])
 
 
 async def test_get_log_returns_existing(program_and_run, client, auth_headers):
