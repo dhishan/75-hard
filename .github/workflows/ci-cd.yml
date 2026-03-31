@@ -101,6 +101,14 @@ jobs:
           TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_google_oauth_client_secret: ${{ secrets.TF_VAR_GOOGLE_OAUTH_CLIENT_SECRET }}
 
+      - name: Force new Cloud Run revision
+        run: |
+          gcloud run deploy seventy5hard-backend-prod \
+            --image ${{ env.ARTIFACT_REGISTRY }}/personal-projects-473219/seventy5hard-backend/backend:latest \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --quiet
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
