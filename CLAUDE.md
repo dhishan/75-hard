@@ -89,8 +89,10 @@ Backend: `:8000`, Frontend: `:5173`
 ## Playwright E2E
 
 - Build frontend with `VITE_E2E=true` to expose `window.__e2eSignIn` helper
-- Use `[class*="bg-green-100"]` / `[class*="bg-red-100"]` for save banner selectors (not `bg-green` which matches task cards)
-- After clicking sub-option buttons, wait for `toHaveClass(/bg-blue-600/)` before saving
+- Use `[class*="e6f4ef"]` / `[class*="fef2f2"]` for save banner selectors (Titanium success/error bg colors)
+- After clicking sub-option buttons, wait for `toHaveClass(/bg-\[#0058be\]/)` before saving
+- Task boolean checkboxes are custom `<button>` elements (not `input[type="checkbox"]`); use `.locator('button').first().click()`
+- Task cards use `rounded-xl` (not `rounded-lg`); use `[class*="rounded-xl"]` for card selectors
 
 ## New Project Checklist
 

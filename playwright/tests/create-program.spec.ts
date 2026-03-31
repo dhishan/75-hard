@@ -48,9 +48,10 @@ test.describe('Dashboard — active run', () => {
     await page.goto('/graphs')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Completion Heatmap')).toBeVisible()
-    await expect(page.getByText('Streaks')).toBeVisible()
-    await expect(page.getByText('Task Completion Rates')).toBeVisible()
-    await expect(page.getByText('Points Accumulation')).toBeVisible()
+    // Use first() because CompletionHeatmap component also renders a "Completion Heatmap" heading
+    await expect(page.getByText('Completion Heatmap').first()).toBeVisible()
+    await expect(page.getByText('Streaks').first()).toBeVisible()
+    await expect(page.getByText('Task Completion Rates').first()).toBeVisible()
+    await expect(page.getByText('Points Accumulation').first()).toBeVisible()
   })
 })

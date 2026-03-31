@@ -29,26 +29,35 @@ test.describe('Daily Log', () => {
     await expect(page.getByText('No added sugar')).toBeVisible({ timeout: 10000 })
   }
 
+  // Helper: click the circular checkbox button for a boolean task card
+  async function clickTaskCheckbox(page: Page, taskName: string) {
+    const card = page.locator('[class*="rounded-xl"]').filter({ hasText: taskName })
+    // The checkbox is the first button in the card (circular check button)
+    await card.locator('button').first().click()
+  }
+
   test('complete all required tasks shows success banner', async ({ page }) => {
     await navigateToLog(page)
 
-    const sugarCard = page.locator('[class*="rounded-lg"]').filter({ hasText: 'No added sugar' })
-    await sugarCard.locator('input[type="checkbox"]').check()
+    // Boolean task — click circular checkbox button
+    await clickTaskCheckbox(page, 'No added sugar')
 
-    const workoutCard = page.locator('[class*="rounded-lg"]').filter({ hasText: 'Workout' })
+    // Duration/measurement tasks — fill number input
+    const workoutCard = page.locator('[class*="rounded-xl"]').filter({ hasText: 'Workout' })
     await workoutCard.locator('input[type="number"]').fill('25')
 
-    const waterCard = page.locator('[class*="rounded-lg"]').filter({ hasText: 'Water' })
+    const waterCard = page.locator('[class*="rounded-xl"]').filter({ hasText: 'Water' })
     await waterCard.locator('input[type="number"]').fill('3')
 
-    const studyCard = page.locator('[class*="rounded-lg"]').filter({ hasText: 'Study session' })
+    const studyCard = page.locator('[class*="rounded-xl"]').filter({ hasText: 'Study session' })
     await studyCard.locator('input[type="number"]').fill('20')
 
-    await page.getByRole('button', { name: 'Save Log' }).click()
-    await page.waitForSelector('[class*="bg-green-100"]', { timeout: 5000 })
+    await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
+    await page.waitForSelector('[class*="e6f4ef"], [class*="fef2f2"]', { timeout: 5000 })
 
     await expect(page.getByText(/Day complete/)).toBeVisible()
-    await expect(page.getByText(/325 pts/)).toBeVisible()
+    // Required tasks earn 0 points; banner shows "+0 pts"
+    await expect(page.getByText(/\+0 pts/)).toBeVisible()
   })
 
   test('skipping a required task shows penalty banner', async ({ page }) => {
@@ -58,12 +67,12 @@ test.describe('Daily Log', () => {
     await expect(page.getByText('No added sugar')).toBeVisible({ timeout: 10000 })
 
     // Complete only 3 of 4 required tasks — skip No added sugar
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Workout' }).locator('input[type="number"]').fill('25')
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Water' }).locator('input[type="number"]').fill('3')
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Study session' }).locator('input[type="number"]').fill('20')
+    await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Workout' }).locator('input[type="number"]').fill('25')
+    await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Water' }).locator('input[type="number"]').fill('3')
+    await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Study session' }).locator('input[type="number"]').fill('20')
 
-    await page.getByRole('button', { name: 'Save Log' }).click()
-    await page.waitForSelector('[class*="bg-red-100"]', { timeout: 5000 })
+    await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
+    await page.waitForSelector('[class*="fef2f2"]', { timeout: 5000 })
 
     await expect(page.getByText(/Incomplete/)).toBeVisible()
     await expect(page.getByText(/penalty day/)).toBeVisible()
@@ -76,25 +85,21 @@ test.describe('Daily Log', () => {
     await expect(page.getByText('No added sugar')).toBeVisible({ timeout: 10000 })
 
     // Complete all required
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'No added sugar' }).locator('input[type="checkbox"]').check()
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Workout' }).locator('input[type="number"]').fill('25')
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Water' }).locator('input[type="number"]').fill('3')
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Study session' }).locator('input[type="number"]').fill('20')
+    await clickTaskCheckbox(page, 'No added sugar')
+    await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Workout' }).locator('input[type="number"]').fill('25')
+    await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Water' }).locator('input[type="number"]').fill('3')
+    await page.locator('[class*="rounded-xl"]').filter({ hasText: 'Study session' }).locator('input[type="number"]').fill('20')
 
-    // Complete optionals: skin care + news
-    await page.locator('[class*="rounded-lg"]').filter({ hasText: 'Skin care' }).locator('input[type="checkbox"]').check()
-    const newsButton = page.locator('[class*="rounded-lg"]').filter({ hasText: 'News/Finance/Podcast' }).getByRole('button', { name: 'news' })
+    // Complete optionals: skin care (15 pts) + news (20 pts) = 35 pts total
+    await clickTaskCheckbox(page, 'Skin care')
+    const newsButton = page.locator('[class*="rounded-xl"]').filter({ hasText: 'News/Finance/Podcast' }).getByRole('button', { name: 'news' })
     await newsButton.click()
-    // Wait for the button to turn blue (selected state) before saving
-    await expect(newsButton).toHaveClass(/bg-blue-600/, { timeout: 3000 })
+    await expect(newsButton).toHaveClass(/bg-\[#0058be\]/, { timeout: 3000 })
 
-    await page.getByRole('button', { name: 'Save Log' }).click()
-    // Wait for any save banner (green or red) then assert green
-    await page.waitForSelector('[class*="bg-green-100"], [class*="bg-red-100"]', { timeout: 15000 })
-    const banner = page.locator('[class*="bg-green-100"], [class*="bg-red-100"]').first()
-    console.log('Banner text:', await banner.innerText())
+    await page.getByRole('button', { name: 'SAVE DAILY LOG' }).click()
+    await page.waitForSelector('[class*="e6f4ef"], [class*="fef2f2"]', { timeout: 15000 })
 
-    // 325 + 15 (skin care) + 20 (news) = 360
-    await expect(page.getByText(/360 pts/)).toBeVisible({ timeout: 5000 })
+    // 0 (required) + 15 (skin care) + 20 (news) = 35 pts
+    await expect(page.getByText(/35 pts/)).toBeVisible({ timeout: 5000 })
   })
 })
