@@ -8,6 +8,7 @@ import Dashboard from '@/pages/Dashboard'
 import Graphs from '@/pages/Graphs'
 import DailyLog from '@/pages/DailyLog'
 import Programs from '@/pages/Programs'
+import Profile from '@/pages/Profile'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore()
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/graphs" element={<PrivateRoute><Graphs /></PrivateRoute>} />
         <Route path="/log/:date" element={<PrivateRoute><DailyLog /></PrivateRoute>} />
         <Route path="/programs" element={<PrivateRoute><Programs /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   )

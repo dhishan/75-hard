@@ -280,7 +280,7 @@ export default function Dashboard() {
             { icon: 'home', label: 'Home', active: true, onClick: () => {} },
             { icon: 'task_alt', label: 'Tasks', active: false, onClick: () => navigate(`/log/${today}`) },
             { icon: 'insights', label: 'Insights', active: false, onClick: () => navigate('/graphs') },
-            { icon: 'person', label: 'Profile', active: false, onClick: () => signOut(auth) },
+            { icon: 'person', label: 'Profile', active: false, onClick: () => navigate('/profile') },
           ].map(({ icon, label, active, onClick }) => (
             <button
               key={label}
