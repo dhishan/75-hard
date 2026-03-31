@@ -34,3 +34,7 @@ class UserProgram(BaseModel):
 class UserProgramCreate(BaseModel):
     program_id: str
     start_date: date
+
+
+class UserProgramStartDateUpdate(BaseModel):
+    start_date: date

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.auth.firebase import verify_token
 from app.db.firestore import get_db
-from app.models.user_program import UserProgram, UserProgramCreate
+from app.models.user_program import UserProgram, UserProgramCreate, UserProgramStartDateUpdate
 
 
 class UserProgramStatusUpdate(BaseModel):
@@ -79,6 +79,25 @@ async def update_status(up_id: str, body: UserProgramStatusUpdate, user=Depends(
     ref.update(updates)
     updated_doc = ref.get()
     return UserProgram(**updated_doc.to_dict())
+
+
+@router.patch("/{up_id}/start-date", response_model=UserProgram)
+async def update_start_date(up_id: str, body: UserProgramStartDateUpdate, user=Depends(verify_token)):
+    db = get_db()
+    ref = db.collection("userPrograms").document(up_id)
+    doc = ref.get()
+    if not doc.exists:
+        raise HTTPException(404)
+    up = UserProgram(**doc.to_dict())
+    if up.user_uid != user["uid"]:
+        raise HTTPException(403)
+    new_current_day = max(1, (date.today() - body.start_date).days + 1)
+    ref.update({
+        "start_date": body.start_date.isoformat(),
+        "current_day": new_current_day,
+        "updated_at": datetime.utcnow().isoformat(),
+    })
+    return UserProgram(**ref.get().to_dict())
 
 
 @router.delete("/{up_id}", status_code=204)

@@ -15,6 +15,9 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [recentLogs, setRecentLogs] = useState<Record<string, DailyLog>>({})
   const [jumpDate, setJumpDate] = useState('')
+  const [editingStartDate, setEditingStartDate] = useState(false)
+  const [startDateInput, setStartDateInput] = useState('')
+  const [startDateSaving, setStartDateSaving] = useState(false)
 
   useEffect(() => {
     api.get<UserProgram[]>('/user-programs').then((res) => {
@@ -60,6 +63,18 @@ export default function Dashboard() {
   const today = new Date().toISOString().split('T')[0]
   const completionPct = Math.round((activeRun.current_day / activeRun.total_days_required) * 100)
 
+  async function saveStartDate() {
+    if (!startDateInput || !activeRun) return
+    setStartDateSaving(true)
+    try {
+      const res = await api.patch<UserProgram>(`/user-programs/${activeRun.id}/start-date`, { start_date: startDateInput })
+      setActiveRun(res.data)
+      setEditingStartDate(false)
+    } finally {
+      setStartDateSaving(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#f6fafe]">
       {/* Top bar */}
@@ -97,6 +112,48 @@ export default function Dashboard() {
             <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73] mb-2">Completion</p>
             <p className="text-4xl font-bold text-[#171c1f] leading-none">{completionPct}%</p>
             <p className="text-xs text-[#6f7a8d] mt-1.5">Overall rate</p>
+          </div>
+        </div>
+
+        {/* Start date */}
+        <div className="bg-white border border-[#c2c6d6] rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73]">Start Date</p>
+              <p className="text-sm font-medium text-[#171c1f] mt-0.5">{activeRun.start_date as unknown as string}</p>
+            </div>
+            {!editingStartDate ? (
+              <button
+                onClick={() => { setStartDateInput(activeRun.start_date as unknown as string); setEditingStartDate(true) }}
+                className="flex items-center gap-1 text-xs text-[#0058be] font-medium hover:underline"
+              >
+                <span className="material-symbols-outlined text-sm">edit</span>
+                Edit
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={startDateInput}
+                  max={today}
+                  onChange={(e) => setStartDateInput(e.target.value)}
+                  className="border border-[#c2c6d6] rounded-lg px-2 py-1 text-xs text-[#171c1f] focus:outline-none focus:border-[#0058be]"
+                />
+                <button
+                  onClick={saveStartDate}
+                  disabled={startDateSaving || !startDateInput}
+                  className="px-3 py-1 bg-[#0058be] text-white text-xs font-medium rounded-lg disabled:opacity-40"
+                >
+                  {startDateSaving ? '…' : 'Save'}
+                </button>
+                <button
+                  onClick={() => setEditingStartDate(false)}
+                  className="text-xs text-[#6f7a8d] hover:text-[#171c1f]"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
