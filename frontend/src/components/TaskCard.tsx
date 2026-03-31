@@ -103,9 +103,9 @@ export default function TaskCard({ task, completion, onChange }: Props) {
         </div>
       )}
 
-      {completion.completed && (
+      {completion.completed && !task.is_required && task.completion_points > 0 && (
         <p className="text-xs text-green-600 mt-2 font-medium">
-          +{completion.points_earned} pts
+          +{completion.points_earned > 0 ? completion.points_earned : task.completion_points} pts
         </p>
       )}
     </div>
