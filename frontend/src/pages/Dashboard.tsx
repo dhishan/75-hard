@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/firebase'
 import { useAuthStore } from '@/store/auth'
@@ -27,9 +27,9 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
         <p className="text-gray-500">
           No active program.{' '}
-          <a href="/programs" className="underline">
+          <Link to="/programs" className="underline">
             Start one
-          </a>
+          </Link>
           .
         </p>
         <button onClick={() => signOut(auth)} className="mt-4 text-sm underline block">
@@ -79,10 +79,10 @@ export default function Dashboard() {
           Log Today
         </button>
         <button
-          onClick={() => navigate(`/runs/${activeRun.id}`)}
+          onClick={() => navigate('/graphs')}
           className="px-4 py-2 border rounded-lg"
         >
-          Run Details
+          Graphs
         </button>
       </div>
     </div>

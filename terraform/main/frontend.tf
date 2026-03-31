@@ -52,17 +52,6 @@ resource "google_compute_url_map" "frontend" {
   project         = var.project_id
   name            = "seventy5hard-frontend-url-map-${var.environment}"
   default_service = google_compute_backend_bucket.frontend.id
-
-  # Serve index.html for 404s — required for SPA client-side routing.
-  # url_rewrite does not work with backend buckets; custom_error_response_policy does.
-  default_custom_error_response_policy {
-    error_response_rule {
-      match_response_codes   = ["404"]
-      path                   = "/index.html"
-      override_response_code = 200
-    }
-    error_service = google_compute_backend_bucket.frontend.id
-  }
 }
 
 resource "google_compute_managed_ssl_certificate" "frontend" {
