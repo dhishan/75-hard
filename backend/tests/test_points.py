@@ -52,13 +52,18 @@ def test_duration_partial_no_points():
 
 
 def test_shields_calculation():
-    assert calc_shields(total_points=3000, points_per_shield=1500, shields_used=0) == 2
-    assert calc_shields(total_points=3000, points_per_shield=1500, shields_used=1) == 1
-    assert calc_shields(total_points=1499, points_per_shield=1500, shields_used=0) == 0
+    assert calc_shields(total_points=3000, points_per_shield=1500) == 2
+    assert calc_shields(total_points=1499, points_per_shield=1500) == 0
 
 
 def test_shields_cannot_go_negative():
-    assert calc_shields(total_points=1500, points_per_shield=1500, shields_used=5) == 0
+    assert calc_shields(total_points=0, points_per_shield=1500) == 0
+
+
+def test_calc_shields_simple():
+    assert calc_shields(3000, 1500) == 2
+    assert calc_shields(1499, 1500) == 0
+    assert calc_shields(0, 1500) == 0
 
 
 def test_required_task_earns_zero_points():

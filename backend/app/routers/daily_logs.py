@@ -68,14 +68,14 @@ async def upsert_log(up_id: str, log_date: date, body: DailyLogUpsert, user=Depe
         penalty_applied = event.days_added
         up.total_points_earned += total_points
         up.shield_tokens_available = calc_shields(
-            up.total_points_earned, up.program_snapshot.get("points_per_shield", 1500), up.shields_used
+            up.total_points_earned, up.program_snapshot.get("points_per_shield", 1500)
         )
         db.collection("userPrograms").document(up_id).set(up.model_dump(mode="json"))
     else:
         up_ref = db.collection("userPrograms").document(up_id)
         up.total_points_earned += total_points
         up.shield_tokens_available = calc_shields(
-            up.total_points_earned, up.program_snapshot.get("points_per_shield", 1500), up.shields_used
+            up.total_points_earned, up.program_snapshot.get("points_per_shield", 1500)
         )
         up_ref.set(up.model_dump(mode="json"))
 

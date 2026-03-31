@@ -57,7 +57,6 @@ def calc_task_points(task: TaskDefinition, tc: TaskCompletion) -> TaskCompletion
     return tc
 
 
-def calc_shields(total_points: int, points_per_shield: int, shields_used: int) -> int:
-    """Return available shield tokens (earned minus spent)."""
-    earned = math.floor(total_points / points_per_shield)
-    return max(0, earned - shields_used)
+def calc_shields(total_points: int, points_per_shield: int) -> int:
+    """Return available shield tokens based on current total_points."""
+    return math.floor(total_points / points_per_shield)
