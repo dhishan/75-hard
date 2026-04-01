@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/firebase'
@@ -17,10 +17,17 @@ export default function Dashboard() {
   const [recentLogs, setRecentLogs] = useState<Record<string, DailyLog>>({})
   const [jumpDate, setJumpDate] = useState('')
   const [categoryRates, setCategoryRates] = useState<Record<string, number>>({})
+  const todayRef = useRef<HTMLButtonElement>(null)
   const [editingStartDate, setEditingStartDate] = useState(false)
   const [startDateInput, setStartDateInput] = useState('')
   const [startDateSaving, setStartDateSaving] = useState(false)
   const [summary, setSummary] = useState<{ complete_days: number; total_logged: number } | null>(null)
+
+  useEffect(() => {
+    if (todayRef.current) {
+      todayRef.current.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })
+    }
+  }, [recentLogs])
 
   useEffect(() => {
     api.get<UserProgram[]>('/user-programs').then((res) => {
@@ -260,8 +267,9 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
             {Array.from({ length: 14 }, (_, i) => {
+              // today at index 7 (center): 7 days before + today + 6 days after
               const d = new Date()
-              d.setDate(d.getDate() - (13 - i))
+              d.setDate(d.getDate() - (7 - i))
               const dateStr = toLocalISODate(d)
               const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
               const dayNum = d.getDate()
@@ -280,13 +288,15 @@ export default function Dashboard() {
               return (
                 <button
                   key={dateStr}
+                  ref={isToday ? todayRef : null}
                   onClick={() => !isFuture && navigate(`/log/${dateStr}`)}
                   disabled={isFuture}
                   className={`flex-shrink-0 flex flex-col items-center gap-0.5 rounded-xl px-3 py-2.5 min-w-[52px] transition-all ${bg} ${isFuture ? 'opacity-40 cursor-default' : 'hover:opacity-90 cursor-pointer'}`}
                 >
                   <span className="text-[10px] font-medium opacity-75">{dayName}</span>
                   <span className="text-base font-bold leading-tight">{dayNum}</span>
-                  {isLogged && (
+                  {isToday && <span className="text-[10px] font-bold opacity-90">Today</span>}
+                  {!isToday && isLogged && (
                     <span className="material-symbols-outlined text-[12px] mt-0.5">
                       {isComplete ? 'check_circle' : 'cancel'}
                     </span>
