@@ -113,3 +113,8 @@ class ProgramCreate(BaseModel):
 
 class ProgramWithTasks(Program):
     tasks: list[TaskDefinition] = []
+
+
+class TaskPatch(BaseModel):
+    name: str | None = None
+    completion_points: int | None = None

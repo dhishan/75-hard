@@ -59,7 +59,7 @@ export default function Graphs() {
 
   return (
     <div className="min-h-screen bg-[#f6fafe]">
-      <div className="max-w-3xl mx-auto px-4 pt-6 pb-12">
+      <div className="max-w-3xl mx-auto px-4 pb-12 safe-top" style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button

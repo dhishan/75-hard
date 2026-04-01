@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from app.auth.firebase import verify_token
 from app.db.firestore import get_db
-from app.models.program import Program, ProgramCreate, ProgramWithTasks, TaskDefinition, TaskDefinitionCreate
+from app.models.program import Program, ProgramCreate, ProgramWithTasks, TaskDefinition, TaskDefinitionCreate, TaskPatch
 
 router = APIRouter(prefix="/api/v1/programs", tags=["programs"])
 
@@ -97,6 +97,25 @@ async def add_task(program_id: str, body: TaskDefinitionCreate, user=Depends(ver
         task.model_dump(mode="json")
     )
     return task
+
+
+@router.patch("/{program_id}/tasks/{task_id}", response_model=TaskDefinition)
+async def update_task(program_id: str, task_id: str, body: TaskPatch, user=Depends(verify_token)):
+    db = get_db()
+    prog_doc = db.collection("programs").document(program_id).get()
+    if not prog_doc.exists:
+        raise HTTPException(404, "Program not found")
+    if Program(**prog_doc.to_dict()).owner_uid != user["uid"]:
+        raise HTTPException(403, "Forbidden")
+    task_ref = db.collection("programs").document(program_id).collection("tasks").document(task_id)
+    task_doc = task_ref.get()
+    if not task_doc.exists:
+        raise HTTPException(404, "Task not found")
+    task = TaskDefinition(**task_doc.to_dict())
+    updates = body.model_dump(exclude_none=True)
+    if updates:
+        task_ref.update(updates)
+    return task.model_copy(update=updates)
 
 
 @router.delete("/{program_id}/tasks/{task_id}", status_code=204)
