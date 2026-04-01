@@ -1,13 +1,31 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/firebase'
 import { useAuthStore } from '@/store/auth'
 import { useProgramStore } from '@/store/program'
+import { api } from '@/api/client'
+
+interface ProgramSummary {
+  total_points_earned: number
+  complete_days: number
+  compliance_pct: number
+  shield_tokens_available: number
+}
 
 export default function Profile() {
   const { user } = useAuthStore()
   const { activeRun } = useProgramStore()
   const navigate = useNavigate()
+  const [programSummary, setProgramSummary] = useState<ProgramSummary | null>(null)
+
+  useEffect(() => {
+    if (activeRun) {
+      api.get<ProgramSummary>(`/user-programs/${activeRun.id}/summary`).then((res) => {
+        setProgramSummary(res.data)
+      })
+    }
+  }, [activeRun?.id])
 
   const today = new Date().toISOString().split('T')[0]
   const snapshot = activeRun?.program_snapshot as Record<string, unknown> | undefined
@@ -58,6 +76,21 @@ export default function Profile() {
                 Active
               </span>
             </div>
+            {programSummary && (
+              <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#e4e9ed]">
+                {[
+                  { label: 'Points Earned', value: programSummary.total_points_earned.toLocaleString() },
+                  { label: 'Complete Days', value: String(programSummary.complete_days) },
+                  { label: 'Compliance', value: `${Math.round(programSummary.compliance_pct)}%` },
+                  { label: 'Shields Available', value: String(programSummary.shield_tokens_available) },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-[#f6fafe] rounded-lg p-3">
+                    <p className="text-xs text-[#545f73] font-medium">{label}</p>
+                    <p className="text-lg font-bold text-[#171c1f] mt-0.5">{value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

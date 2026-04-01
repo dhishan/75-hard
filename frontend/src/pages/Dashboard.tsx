@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [editingStartDate, setEditingStartDate] = useState(false)
   const [startDateInput, setStartDateInput] = useState('')
   const [startDateSaving, setStartDateSaving] = useState(false)
+  const [summary, setSummary] = useState<{ complete_days: number; total_logged: number } | null>(null)
 
   useEffect(() => {
     api.get<UserProgram[]>('/user-programs').then((res) => {
@@ -29,6 +30,9 @@ export default function Dashboard() {
           const map: Record<string, DailyLog> = {}
           lr.data.forEach((l) => { map[l.date] = l })
           setRecentLogs(map)
+        })
+        api.get<{ complete_days: number; total_logged: number }>(`/user-programs/${active.id}/summary`).then((sr) => {
+          setSummary(sr.data)
         })
         api.get<{ task_id: string; name: string; completion_rate: number; completed: number; total: number }[]>(
           `/user-programs/${active.id}/stats/task-rates`
@@ -78,11 +82,29 @@ export default function Dashboard() {
     )
   }
 
+  const CATEGORY_ICONS: Record<string, string> = {
+    fitness: 'fitness_center',
+    nutrition: 'restaurant',
+    mindset: 'self_improvement',
+    personal_development: 'menu_book',
+    health: 'favorite',
+    finance: 'savings',
+  }
+
+  function toTitleCase(key: string): string {
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+
   const snapshot = activeRun.program_snapshot as Record<string, unknown>
   const programName = (snapshot?.name as string) ?? 'My Challenge'
   const pointsPerShield = (snapshot?.points_per_shield as number) ?? 1500
   const today = new Date().toISOString().split('T')[0]
-  const completionPct = Math.round((activeRun.current_day / activeRun.total_days_required) * 100)
+  const completionPct = summary && summary.total_logged > 0
+    ? Math.round((summary.complete_days / summary.total_logged) * 100)
+    : null
+
+  const snapshotTasks = ((snapshot?.tasks ?? []) as { id: string; category: string }[])
+  const uniqueCategories = Array.from(new Set(snapshotTasks.map((t) => t.category)))
 
   async function saveStartDate() {
     if (!startDateInput || !activeRun) return
@@ -131,7 +153,9 @@ export default function Dashboard() {
           {/* Completion rate card */}
           <div className="bg-white border border-[#c2c6d6] rounded-xl p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#545f73] mb-2">Completion</p>
-            <p className="text-4xl font-bold text-[#171c1f] leading-none">{completionPct}%</p>
+            <p className="text-4xl font-bold text-[#171c1f] leading-none">
+              {completionPct !== null ? `${completionPct}%` : '—'}
+            </p>
             <p className="text-xs text-[#6f7a8d] mt-1.5">Overall rate</p>
           </div>
         </div>
@@ -188,15 +212,12 @@ export default function Dashboard() {
 
         {/* Category performance cards */}
         <div className="grid grid-cols-2 gap-4">
-          {[
-            { icon: 'fitness_center', label: 'Fitness', key: 'fitness' },
-            { icon: 'restaurant', label: 'Nutrition', key: 'nutrition' },
-            { icon: 'self_improvement', label: 'Mindset', key: 'mindset' },
-            { icon: 'menu_book', label: 'Development', key: 'personal_development' },
-          ].map(({ icon, label, key }) => {
+          {uniqueCategories.map((key) => {
+            const icon = CATEGORY_ICONS[key] ?? 'category'
+            const label = toTitleCase(key)
             const pct = categoryRates[key] ?? null
             return (
-            <div key={label} className="bg-white border border-[#c2c6d6] rounded-xl p-4">
+            <div key={key} className="bg-white border border-[#c2c6d6] rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="material-symbols-outlined text-[#0058be] text-lg">{icon}</span>
                 <span className="text-xs font-semibold text-[#545f73] uppercase tracking-wide">{label}</span>
