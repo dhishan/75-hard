@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth'
 import { auth } from '@/firebase'
 import { api } from '@/api/client'
 import { toLocalISODate } from '@/utils/date'
-import type { Program, UserProgram, TaskCategory, TaskFrequency, PenaltyMode } from '@/types'
+import type { Program, ProgramWithTasks, TaskDefinition, UserProgram, TaskCategory, TaskFrequency, PenaltyMode } from '@/types'
 
 interface TaskDraft {
   name: string
@@ -97,6 +97,16 @@ export default function Programs() {
   const [maxShieldsPerWeek, setMaxShieldsPerWeek] = useState(saved?.maxShieldsPerWeek ?? 1)
 
   const [creating, setCreating] = useState(false)
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editDuration, setEditDuration] = useState(75)
+  const [editTasks, setEditTasks] = useState<TaskDefinition[]>([])
+  const [editLoading, setEditLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Persist wizard state to localStorage whenever it changes
   useEffect(() => {
@@ -199,7 +209,64 @@ export default function Programs() {
     }
   }
 
-  const inputClass = 'border border-[#c2c6d6] rounded-lg px-3 py-2 text-[#171c1f] bg-white focus:outline-none focus:border-[#0058be] focus:ring-1 focus:ring-[#0058be] w-full text-sm'
+  async function openEdit(p: Program) {
+    if (editingId === p.id) {
+      setEditingId(null)
+      return
+    }
+    setEditingId(p.id)
+    setEditName(p.name)
+    setEditDuration(p.duration_days)
+    setConfirmDelete(false)
+    setEditLoading(true)
+    try {
+      const res = await api.get<ProgramWithTasks>(`/programs/${p.id}`)
+      setEditTasks(res.data.tasks)
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  function updateEditTask(id: string, field: 'name' | 'completion_points', value: string | number) {
+    setEditTasks((prev) => prev.map((t) => t.id === id ? { ...t, [field]: value } : t))
+  }
+
+  async function saveEdit(p: Program) {
+    setSaving(true)
+    try {
+      await api.put(`/programs/${p.id}`, {
+        name: editName,
+        duration_days: editDuration,
+        penalty_mode: p.penalty_mode,
+        points_per_shield: p.points_per_shield,
+        max_shields_per_week: p.max_shields_per_week,
+      })
+      for (const task of editTasks) {
+        await api.patch(`/programs/${p.id}/tasks/${task.id}`, {
+          name: task.name,
+          completion_points: task.completion_points,
+        })
+      }
+      setEditingId(null)
+      loadData()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function deleteProgram(programId: string) {
+    setDeleting(true)
+    try {
+      await api.delete(`/programs/${programId}`)
+      setEditingId(null)
+      setConfirmDelete(false)
+      loadData()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const inputClass ='border border-[#c2c6d6] rounded-lg px-3 py-2 text-[#171c1f] bg-white focus:outline-none focus:border-[#0058be] focus:ring-1 focus:ring-[#0058be] w-full text-sm'
 
   return (
     <div className="min-h-screen bg-[#f6fafe]">
@@ -629,29 +696,163 @@ export default function Programs() {
         <div className="flex flex-col gap-4">
           {programs.map((p) => {
             const isActive = activeRunProgramIds.has(p.id)
+            const isEditing = editingId === p.id
             return (
-              <div key={p.id} className="bg-white rounded-xl border border-[#c2c6d6] p-5 flex justify-between items-center shadow-sm">
-                <div>
-                  <p className="font-semibold text-[#171c1f]">{p.name}</p>
-                  <p className="text-sm text-[#6f7a8d] mt-0.5">
-                    {p.duration_days} days · {p.penalty_mode === 'reset' ? 'Resets on miss' : 'Exponential days'}
-                  </p>
+              <div key={p.id}>
+                <div className={`bg-white rounded-xl border p-5 flex justify-between items-center shadow-sm ${isEditing ? 'border-[#0058be]' : 'border-[#c2c6d6]'}`}>
+                  <div>
+                    <p className="font-semibold text-[#171c1f]">{p.name}</p>
+                    <p className="text-sm text-[#6f7a8d] mt-0.5">
+                      {p.duration_days} days · {p.penalty_mode === 'reset' ? 'Resets on miss' : 'Exponential days'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openEdit(p)}
+                      className={`border rounded-full px-4 py-2 font-medium text-sm transition-colors ${isEditing ? 'border-[#0058be] bg-[#0058be] text-white' : 'border-[#c2c6d6] text-[#545f73] hover:border-[#6f7a8d]'}`}
+                    >
+                      {isEditing ? 'Editing' : 'Edit'}
+                    </button>
+                    {isActive ? (
+                      <button
+                        onClick={() => navigate('/dashboard')}
+                        className="border border-[#0058be] text-[#0058be] rounded-full px-5 py-2 font-medium hover:bg-[#f0f4f8] text-sm transition-colors"
+                      >
+                        View Active
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => startProgram(p.id)}
+                        disabled={starting === p.id}
+                        className="bg-[#0058be] text-white rounded-full px-5 py-2 font-medium hover:bg-[#2170e4] text-sm disabled:opacity-50 transition-colors"
+                      >
+                        {starting === p.id ? 'Starting...' : 'Start'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {isActive ? (
-                  <button
-                    onClick={() => navigate('/dashboard')}
-                    className="border border-[#0058be] text-[#0058be] rounded-full px-5 py-2 font-medium hover:bg-[#f0f4f8] text-sm transition-colors"
-                  >
-                    View Active
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => startProgram(p.id)}
-                    disabled={starting === p.id}
-                    className="bg-[#0058be] text-white rounded-full px-5 py-2 font-medium hover:bg-[#2170e4] text-sm disabled:opacity-50 transition-colors"
-                  >
-                    {starting === p.id ? 'Starting...' : 'Start'}
-                  </button>
+
+                {isEditing && (
+                  <div className="bg-white rounded-xl border border-[#0058be] p-5 mt-1 shadow-sm">
+                    {editLoading ? (
+                      <p className="text-sm text-[#6f7a8d]">Loading...</p>
+                    ) : (
+                      <>
+                        {isActive && (
+                          <div className="bg-[#fff8e6] border border-[#f0c040] rounded-lg px-3 py-2 text-xs text-[#7a5800] mb-4">
+                            This program has an active run. Changes apply to future runs only.
+                          </div>
+                        )}
+
+                        <div className="flex gap-4 mb-5">
+                          <div className="flex-1">
+                            <label className="text-xs text-[#545f73] block mb-1.5 font-medium">Name</label>
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className={inputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-[#545f73] block mb-1.5 font-medium">Duration (days)</label>
+                            <input
+                              type="number"
+                              value={editDuration}
+                              onChange={(e) => setEditDuration(Number(e.target.value))}
+                              className="border border-[#c2c6d6] rounded-lg px-3 py-2 text-[#171c1f] bg-white focus:outline-none focus:border-[#0058be] focus:ring-1 focus:ring-[#0058be] w-24 text-sm"
+                            />
+                          </div>
+                        </div>
+
+                        {editTasks.length > 0 && (
+                          <div className="mb-5">
+                            <p className="text-xs text-[#545f73] font-medium mb-2">Tasks</p>
+                            <div className="flex flex-col gap-2">
+                              {editTasks.map((task) => (
+                                <div key={task.id} className="bg-[#f0f4f8] rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[task.category] ?? 'bg-gray-100 text-gray-600'}`}>
+                                      {CATEGORIES.find((c) => c.value === task.category)?.label}
+                                    </span>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${task.is_required ? 'bg-red-100 text-red-700' : 'bg-[#fef3c7] text-[#92400e]'}`}>
+                                      {task.is_required ? 'Required' : 'Optional'}
+                                    </span>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={task.name}
+                                    onChange={(e) => updateEditTask(task.id, 'name', e.target.value)}
+                                    className={inputClass}
+                                  />
+                                  {!task.is_required && (
+                                    <div className="mt-2">
+                                      <div className="flex justify-between mb-1">
+                                        <label className="text-xs text-[#545f73] font-medium">Points</label>
+                                        <span className="text-xs font-semibold text-[#0058be]">{task.completion_points} pts</span>
+                                      </div>
+                                      <input
+                                        type="range"
+                                        min={10}
+                                        max={500}
+                                        step={10}
+                                        value={task.completion_points}
+                                        onChange={(e) => updateEditTask(task.id, 'completion_points', Number(e.target.value))}
+                                        className="w-full accent-[#0058be]"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center pt-3 border-t border-[#eaeef2]">
+                          {confirmDelete ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[#ba1a1a] font-medium">Delete this program?</span>
+                              <button
+                                onClick={() => deleteProgram(p.id)}
+                                disabled={deleting}
+                                className="bg-[#ba1a1a] text-white rounded-full px-4 py-1.5 text-xs font-medium disabled:opacity-50"
+                              >
+                                {deleting ? 'Deleting...' : 'Confirm'}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDelete(false)}
+                                className="text-xs text-[#545f73] hover:underline"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDelete(true)}
+                              className="text-xs text-[#ba1a1a] font-medium hover:underline"
+                            >
+                              Delete program
+                            </button>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="border border-[#0058be] text-[#0058be] rounded-full px-5 py-2 font-medium hover:bg-[#f0f4f8] text-sm transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => saveEdit(p)}
+                              disabled={saving || !editName.trim()}
+                              className="bg-[#0058be] text-white rounded-full px-5 py-2 font-medium hover:bg-[#2170e4] text-sm disabled:opacity-50 transition-colors"
+                            >
+                              {saving ? 'Saving...' : 'Save'}
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             )
