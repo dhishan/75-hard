@@ -303,7 +303,6 @@ export default function Dashboard() {
             <input
               type="date"
               value={jumpDate}
-              min={activeRun.start_date as unknown as string}
               max={today}
               onChange={(e) => setJumpDate(e.target.value)}
               className="flex-1 border border-[#c2c6d6] rounded-lg px-3 py-2 text-sm text-[#171c1f] bg-white focus:outline-none focus:border-[#0058be] focus:ring-1 focus:ring-[#0058be]"
