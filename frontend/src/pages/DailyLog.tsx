@@ -127,7 +127,7 @@ export default function DailyLog() {
         </div>
       )}
 
-      <div className="max-w-xl mx-auto px-4 pt-6 pb-32">
+      <div className="max-w-xl mx-auto px-4 pb-32 safe-top" style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
           <button
@@ -217,7 +217,7 @@ export default function DailyLog() {
       </div>
 
       {/* Sticky bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#c2c6d6] px-4 py-4 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#c2c6d6] px-4 pt-4 pb-4 shadow-lg safe-bottom">
         <div className="max-w-xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-[#545f73] font-medium">

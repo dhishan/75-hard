@@ -40,7 +40,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-[#f6fafe]">
       {/* Header */}
-      <header className="bg-white border-b border-[#e4e9ed] sticky top-0 z-10">
+      <header className="bg-white border-b border-[#e4e9ed] sticky top-0 z-10 safe-top">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
           <h1 className="font-bold text-[#171c1f]">Profile</h1>
         </div>
@@ -130,7 +130,7 @@ export default function Profile() {
       </main>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e4e9ed]">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e4e9ed] safe-bottom">
         <div className="max-w-2xl mx-auto flex items-center justify-around h-14">
           {[
             { icon: 'home', label: 'Home', active: false, onClick: () => navigate('/dashboard') },
