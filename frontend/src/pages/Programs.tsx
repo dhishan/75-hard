@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/firebase'
 import { api } from '@/api/client'
+import { toLocalISODate } from '@/utils/date'
 import type { Program, UserProgram, TaskCategory, TaskFrequency, PenaltyMode } from '@/types'
 
 interface TaskDraft {
@@ -190,7 +191,7 @@ export default function Programs() {
   async function startProgram(programId: string) {
     setStarting(programId)
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const today = toLocalISODate()
       await api.post('/user-programs', { program_id: programId, start_date: today })
       navigate('/dashboard')
     } finally {

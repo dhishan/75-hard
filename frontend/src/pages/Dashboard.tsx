@@ -8,6 +8,7 @@ import { api } from '@/api/client'
 import type { DailyLog, UserProgram } from '@/types'
 import DayCounter from '@/components/DayCounter'
 import ShieldStatus from '@/components/ShieldStatus'
+import { toLocalISODate } from '@/utils/date'
 
 export default function Dashboard() {
   const { user: _user } = useAuthStore()
@@ -98,7 +99,7 @@ export default function Dashboard() {
   const snapshot = activeRun.program_snapshot as Record<string, unknown>
   const programName = (snapshot?.name as string) ?? 'My Challenge'
   const pointsPerShield = (snapshot?.points_per_shield as number) ?? 1500
-  const today = new Date().toISOString().split('T')[0]
+  const today = toLocalISODate()
   const completionPct = summary && summary.total_logged > 0
     ? Math.round((summary.complete_days / summary.total_logged) * 100)
     : null
@@ -261,7 +262,7 @@ export default function Dashboard() {
             {Array.from({ length: 14 }, (_, i) => {
               const d = new Date()
               d.setDate(d.getDate() - (13 - i))
-              const dateStr = d.toISOString().split('T')[0]
+              const dateStr = toLocalISODate(d)
               const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
               const dayNum = d.getDate()
               const isToday = dateStr === today

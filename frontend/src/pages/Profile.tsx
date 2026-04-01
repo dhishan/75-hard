@@ -5,6 +5,7 @@ import { auth } from '@/firebase'
 import { useAuthStore } from '@/store/auth'
 import { useProgramStore } from '@/store/program'
 import { api } from '@/api/client'
+import { toLocalISODate } from '@/utils/date'
 
 interface ProgramSummary {
   total_points_earned: number
@@ -27,7 +28,7 @@ export default function Profile() {
     }
   }, [activeRun?.id])
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = toLocalISODate()
   const snapshot = activeRun?.program_snapshot as Record<string, unknown> | undefined
   const programName = (snapshot?.name as string) ?? null
 
