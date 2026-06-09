@@ -1,5 +1,12 @@
 {
   "projects": {
-    "default": "demo-75hard"
+    "default": "personal-projects-473219"
+  },
+  "targets": {
+    "personal-projects-473219": {
+      "hosting": {
+        "ui": ["seventy5hard-ble"]
+      }
+    }
   }
 }

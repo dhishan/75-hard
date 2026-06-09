@@ -1,11 +1,13 @@
 # ── Cloudflare DNS ────────────────────────────────────────────────────────────
 
-# Frontend — A record pointing to GCP HTTPS LB
-resource "cloudflare_record" "frontend_a" {
+# Frontend — CNAME to Firebase Hosting (replaces A record to GCP LB).
+# Firebase Hosting provisions a managed SSL cert for 75hard.blueelephants.org
+# once this CNAME is in place.
+resource "cloudflare_record" "frontend_cname" {
   zone_id = var.cloudflare_zone_id
   name    = "75hard"
-  type    = "A"
-  content = google_compute_global_address.frontend.address
+  type    = "CNAME"
+  content = "${google_firebase_hosting_site.frontend.site_id}.web.app"
   proxied = false
   ttl     = 300
 }

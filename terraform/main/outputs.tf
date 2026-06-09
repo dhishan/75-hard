@@ -18,11 +18,6 @@ output "artifact_registry_repo" {
   value       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.backend.repository_id}"
 }
 
-output "frontend_ip" {
-  description = "Global IP address for the frontend HTTPS load balancer"
-  value       = google_compute_global_address.frontend.address
-}
-
 output "frontend_url" {
   description = "Frontend URL"
   value       = "https://75hard.${var.root_domain}"
@@ -31,9 +26,4 @@ output "frontend_url" {
 output "backend_url_custom" {
   description = "Backend custom domain URL"
   value       = "https://api.75hard.${var.root_domain}"
-}
-
-output "frontend_bucket_name" {
-  description = "GCS bucket name for frontend static hosting"
-  value       = google_storage_bucket.frontend.name
 }
